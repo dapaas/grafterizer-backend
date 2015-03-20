@@ -1,0 +1,26 @@
+{
+  "name": "grafterizer-rest",
+  "version": "0.1.0",
+  "description": "Grafterizer HTTP REST server.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dapaas/grafterizer-backend.git"
+  },
+  "keywords": [
+    "dapaas",
+    "grafterizer",
+    "rest",
+    "graftwerk"
+  ],
+  "author": "Antoine Pultier <antoine.pultier@sintef.no>",
+  "license": "EPL",
+  "bugs": {
+    "url": "https://github.com/dapaas/grafterizer-backend/issues"
+  },
+  "homepage": "https://github.com/dapaas/grafterizer-backend"
+}
