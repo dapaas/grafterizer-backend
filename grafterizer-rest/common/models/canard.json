@@ -1,0 +1,25 @@
+{
+  "name": "canard",
+  "plural": "canards",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "age": {
+      "type": "number"
+    },
+    "speed": {
+      "type": "number"
+    },
+    "isBeautiful": {
+      "type": "boolean"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": []
+}

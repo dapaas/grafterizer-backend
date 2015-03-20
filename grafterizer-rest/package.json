@@ -1,26 +1,28 @@
 {
   "name": "grafterizer-rest",
-  "version": "0.1.0",
-  "description": "Grafterizer HTTP REST server.",
-  "main": "server.js",
+  "version": "1.0.0",
+  "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "pretest": "jshint ."
+  },
+  "dependencies": {
+    "compression": "^1.0.3",
+    "errorhandler": "^1.1.1",
+    "loopback": "^2.8.0",
+    "loopback-boot": "^2.6.5",
+    "loopback-connector-postgresql": "^1.6.1",
+    "loopback-datasource-juggler": "^2.7.0",
+    "serve-favicon": "^2.0.1"
+  },
+  "optionalDependencies": {
+    "loopback-explorer": "^1.1.0"
+  },
+  "devDependencies": {
+    "jshint": "^2.5.6"
   },
   "repository": {
-    "type": "git",
-    "url": "https://github.com/dapaas/grafterizer-backend.git"
+    "type": "",
+    "url": ""
   },
-  "keywords": [
-    "dapaas",
-    "grafterizer",
-    "rest",
-    "graftwerk"
-  ],
-  "author": "Antoine Pultier <antoine.pultier@sintef.no>",
-  "license": "EPL",
-  "bugs": {
-    "url": "https://github.com/dapaas/grafterizer-backend/issues"
-  },
-  "homepage": "https://github.com/dapaas/grafterizer-backend"
+  "description": "grafterizer-rest"
 }

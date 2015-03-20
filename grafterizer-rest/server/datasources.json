@@ -1,0 +1,15 @@
+{
+  "db": {
+    "name": "db",
+    "connector": "memory"
+  },
+  "pgminicloud": {
+    "host": "secret",
+    "port": 5432,
+    "database": "loopback",
+    "username": "postgres",
+    "password": "secret",
+    "name": "pgminicloud",
+    "connector": "postgresql"
+  }
+}

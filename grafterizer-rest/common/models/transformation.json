@@ -1,0 +1,28 @@
+{
+  "name": "transformation",
+  "plural": "transformations",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "properties": {
+    "uri": {
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "metadata": {
+      "type": "string",
+      "required": true
+    },
+    "clojure": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": []
+}
