@@ -1,0 +1,29 @@
+{
+  "name": "file",
+  "plural": "files",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "content": {
+      "type": "json",
+      "required": true,
+      "postgresql": {
+        "dataType": "jsonb"
+      }
+    },
+    "date": {
+      "type": "date"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": []
+}

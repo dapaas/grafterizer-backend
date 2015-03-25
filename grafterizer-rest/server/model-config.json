@@ -33,5 +33,13 @@
   "canard": {
     "dataSource": "pgminicloud",
     "public": true
+  },
+  "datapages": {
+    "dataSource": "pgminicloud",
+    "public": true
+  },
+  "file": {
+    "dataSource": "pgminicloud",
+    "public": true
   }
 }
