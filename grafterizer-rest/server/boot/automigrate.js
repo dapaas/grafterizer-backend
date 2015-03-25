@@ -1,5 +1,5 @@
 module.exports = function(app) {
-	app.dataSources['pgminicloud'].automigrate(['canard', 'transformation'], function(err) {
+	app.dataSources['pgminicloud'].automigrate(['datapages', 'transformation'], function(err) {
 		console.log(err);
 	});
 };

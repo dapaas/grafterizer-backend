@@ -1,0 +1,22 @@
+{
+  "name": "datapages",
+  "plural": "datapages",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "properties": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "metadata": {
+      "type": "string"
+    },
+    "data": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": []
+}
