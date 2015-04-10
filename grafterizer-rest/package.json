@@ -6,12 +6,15 @@
     "pretest": "jshint ."
   },
   "dependencies": {
+    "babyparse": "^0.4.3",
     "compression": "^1.0.3",
+    "csv-stringify": "0.0.6",
     "errorhandler": "^1.1.1",
     "loopback": "^2.8.0",
     "loopback-boot": "^2.6.5",
     "loopback-connector-postgresql": "^1.6.1",
     "loopback-datasource-juggler": "^2.7.0",
+    "request": "^2.55.0",
     "serve-favicon": "^2.0.1"
   },
   "optionalDependencies": {

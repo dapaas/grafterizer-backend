@@ -6,7 +6,7 @@
   "properties": {
     "uri": {
       "type": "string",
-      "required": true
+      "required": false
     },
     "name": {
       "type": "string",
@@ -14,11 +14,11 @@
     },
     "metadata": {
       "type": "string",
-      "required": true
+      "required": false
     },
     "clojure": {
       "type": "string",
-      "required": true
+      "required": false
     }
   },
   "validations": [],
