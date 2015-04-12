@@ -10,6 +10,7 @@
     "compression": "^1.0.3",
     "csv-stringify": "0.0.6",
     "errorhandler": "^1.1.1",
+    "jsedn": "^0.3.5",
     "loopback": "^2.8.0",
     "loopback-boot": "^2.6.5",
     "loopback-connector-postgresql": "^1.6.1",
