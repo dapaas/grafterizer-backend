@@ -1,7 +1,8 @@
 var request = require('request'),
 	unparse = require('babyparse').unparse,
 	stringify = require('csv-stringify'),
-	edn = require("jsedn");
+	edn = require("jsedn"),
+	cors = require("cors");
 
 module.exports = function(app) {
 
@@ -89,15 +90,15 @@ module.exports = function(app) {
 		});
 	};
 
-	app.get('/pipe/:transformation/:file.edn', function(req, res) {
+	app.get('/pipe/:transformation/:file.edn', cors(), function(req, res) {
 		computePipe(req, res, 'edn');
 	});
 
-	app.get('/pipe/:transformation/:file.csv', function(req, res) {
+	app.get('/pipe/:transformation/:file.csv', cors(), function(req, res) {
 		computePipe(req, res, 'csv');
 	});
 
-	app.get('/pipe/:transformation/:file.json', function(req, res) {
+	app.get('/pipe/:transformation/:file.json', cors(), function(req, res) {
 		computePipe(req, res, 'json');
 	});
 }
