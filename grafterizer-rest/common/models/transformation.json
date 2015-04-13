@@ -19,6 +19,13 @@
     "clojure": {
       "type": "string",
       "required": false
+    },
+    "model": {
+      "type": "json",
+      "required": false,
+      "postgresql": {
+        "dataType": "jsonb"
+      }
     }
   },
   "validations": [],

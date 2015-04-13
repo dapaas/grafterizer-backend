@@ -1,5 +1,5 @@
 module.exports = function(app) {
-	//app.dataSources['pgminicloud'].automigrate(['datapages', 'transformation', 'file'], function(err) {
-	//	console.log(err);
-	//});
+	app.dataSources['pgminicloud'].autoupdate(['datapages', 'transformation', 'file'], function(err) {
+		console.log(err || "Autoupdate successfull");
+	});
 };
