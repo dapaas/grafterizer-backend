@@ -14,7 +14,7 @@
     "jsedn": "^0.3.5",
     "loopback": "^2.8.0",
     "loopback-boot": "^2.6.5",
-    "loopback-connector-postgresql": "^1.6.1",
+    "loopback-connector-postgresql": "dapaas/loopback-connector-postgresql",
     "loopback-datasource-juggler": "^2.7.0",
     "request": "^2.55.0",
     "serve-favicon": "^2.0.1"
