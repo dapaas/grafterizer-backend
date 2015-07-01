@@ -4,6 +4,7 @@
   "port": 3000,
   "legacyExplorer": false,
   "graftwerkEndpoint": "http://192.168.11.34:3000",
+  "ontotextEndpoint": "http://ec2-54-76-140-62.eu-west-1.compute.amazonaws.com:8080",
   "remoting": {
     "context": {
       "enableHttpContext": false
