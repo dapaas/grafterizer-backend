@@ -1,0 +1,16 @@
+{
+  "name": "grafterizer-rest-light",
+  "version": "0.1.0",
+  "description": "Light Grafterizer API",
+  "main": "index.js",
+  "author": "Antoine Pultier <antoine.pultier@sintef.no>",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.13.0",
+    "compression": "^1.5.0",
+    "cors": "^2.7.1",
+    "express": "^4.12.4",
+    "morgan": "^1.6.0",
+    "request": "^2.57.0"
+  }
+}
