@@ -4,12 +4,13 @@
     "connector": "memory"
   },
   "pgminicloud": {
-    "host": "secret",
+    "host": "192.168.11.35",
     "port": 5432,
-    "database": "loopback",
+    "database": "dapaas",
     "username": "postgres",
-    "password": "secret",
+    "password": "Post9012",
     "name": "pgminicloud",
-    "connector": "postgresql"
+    "connector": "postgresql",
+    "debug": true
   }
 }

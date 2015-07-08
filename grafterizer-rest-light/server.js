@@ -8,6 +8,8 @@ var express = require('express'),
 var endpointOntotext = process.env.ONTOTEXT,
     endpointGraftwerk = process.env.GRAFTWERK;
 
+var apiAuthorization = 'Basic ' + (new Buffer('s4key:s4pass').toString('base64'));
+
 var app = express();
 
 app.use(compression());
@@ -30,7 +32,8 @@ app.get('/poney', function(req, res) {
     request.get({
         url: endpointOntotext + "/catalog/distributions/file",
         headers: {
-            'distrib-id': distributionUri
+            'distrib-id': distributionUri,
+            Authorization: apiAuthorization
         }
     }, function(err, response, body) {
         res.status(response.statusCode);
@@ -50,7 +53,8 @@ app.get('/vache', function(req, res) {
     request.get({
         url: endpointOntotext + "/catalog/distributions/file",
         headers: {
-            'distrib-id': distributionUri
+            'distrib-id': distributionUri,
+            Authorization: apiAuthorization
         }
     }, function(err, response, body) {
         request.post({
@@ -103,7 +107,8 @@ app.post('/lapin', jsonParser, function(req, res) {
     request.get({
         url: endpointOntotext + "/catalog/distributions/file",
         headers: {
-            'distrib-id': distributionUri
+            'distrib-id': distributionUri,
+            Authorization: apiAuthorization
         }
     }, function(err, response, body) {
 
@@ -145,6 +150,7 @@ app.post('/lapin', jsonParser, function(req, res) {
                     // 'transformation-id': transformationUri
                     "command": req.query.command || "my-pipe",
                     "transformation-type": req.query.transformationType || "pipe",
+                    Authorization: apiAuthorization
                 },
                 formData: {
                     "input-file": {
@@ -198,7 +204,8 @@ app.get('/download', function(req, res) {
     request.get({
         url: endpointOntotext + "/catalog/distributions/file",
         headers: {
-            'distrib-id': distributionUri
+            'distrib-id': distributionUri,
+            Authorization: apiAuthorization
         }
     }, function(err, response, bodyFile) {
 
@@ -206,7 +213,8 @@ app.get('/download', function(req, res) {
             request.get({
                 url: endpointOntotext + "/catalog/transformations/code/clojure",
                 headers: {
-                    'transformation-id': transformationUri
+                    'transformation-id': transformationUri,
+                    Authorization: apiAuthorization
                 }
             }, function(err, response, bodyClojure) {
                 if (response.statusCode === 200) {
