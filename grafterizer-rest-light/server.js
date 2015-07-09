@@ -5,10 +5,8 @@ var express = require('express'),
     cors = require('cors'),
     bodyParser = require('body-parser');
 
-var endpointOntotext = process.env.ONTOTEXT,
-    endpointGraftwerk = process.env.GRAFTWERK;
-
-var apiAuthorization = 'Basic ' + (new Buffer('s4key:s4pass').toString('base64'));
+var endpointOntotext = process.env.ONTOTEXT || "http://ontotext:8080";
+var endpointGraftwerk = process.env.GRAFTWERK || "http://graftwerk:8080";
 
 var app = express();
 
@@ -18,45 +16,75 @@ app.use(cors());
 
 var jsonParser = bodyParser.json();
 
+// Used to check the API access
 app.get('/', function(req, res){
     res.send("Hei");
 });
 
+var sendRequestError = function(err, response, body, res) {
+    res.status(response && response.statusCode ? response.statusCode : 500);
 
-app.get('/poney', function(req, res) {
-    var distributionUri = req.query.distributionUri;
-    if (!distributionUri) {
-        res.status(418).json({error: "The distribution URI parameter is missing"});
+    if (body) {
+        res.contentType('text/plain');
+        res.send(body);
+    } else {
+        res.json({error: err});
+    } 
+};
+
+var genericSuccessCallback = function(err, response, body, res) {
+    if (err || (response && response.statusCode !== 200)) {
+        sendRequestError(err, response, body, res);
+    } else {
+        res.contentType('text/plain');
+        res.send(body);
+    }
+};
+
+var downloadRaw = function(req, res, callbackSuccess) {
+
+    var auth = req.headers.authorization;
+
+    if (!auth) {
+        res.status(401).json({error: "The authorization header is missing"});
         return;
     }
+
+    var distributionUri = req.query.distributionUri;
+
+    if (!distributionUri) {
+        if (req.body && req.body.distributionUri) {
+            distributionUri = req.body.distributionUri;
+        } else {
+            res.status(418).json({error: "The distribution URI parameter is missing"});
+            return;
+        }
+    }
+
     request.get({
         url: endpointOntotext + "/catalog/distributions/file",
         headers: {
             'distrib-id': distributionUri,
-            Authorization: apiAuthorization
+            Authorization: auth
         }
     }, function(err, response, body) {
-        res.status(response.statusCode);
+        if (err || (response && response.statusCode !== 200)) {
+            sendRequestError(err, response, body);
+        } else {
+            callbackSuccess(response, body); 
+        }
+    });
+};
 
+app.get('/raw', function(req, res) {
+    downloadRaw(req, res, function(response, body){
         res.contentType('text/plain');
         res.send(body);
-        return;
     });
 });
 
-app.get('/vache', function(req, res) {
-    var distributionUri = req.query.distributionUri;
-    if (!distributionUri) {
-        res.status(418).json({error: "The distribution URI parameter is missing"});
-        return;
-    }
-    request.get({
-        url: endpointOntotext + "/catalog/distributions/file",
-        headers: {
-            'distrib-id': distributionUri,
-            Authorization: apiAuthorization
-        }
-    }, function(err, response, body) {
+app.get('/original', function(req, res) {
+    downloadRaw(req, res, function(response, body){
         request.post({
             url: endpointGraftwerk+"/evaluate/pipe",
             json: true,
@@ -78,186 +106,120 @@ app.get('/vache', function(req, res) {
                 command: req.query.command || 'my-pipe'
             }
         }, function(err, response, body) {
-            res.status(response.statusCode);
-
-            res.contentType('text/plain');
-            res.send(body);
-            return;
+            genericSuccessCallback(err, response, body, res);
         });
     });
 });
 
-app.post('/lapin', jsonParser, function(req, res) {
+app.post('/preview', jsonParser, function(req, res) {
 
-    if (req.body) {
-        var distributionUri = req.body.distributionUri,
-            clojure = req.body.clojure;
+    var auth = req.headers.authorization;
+    if (!auth) {
+        res.status(401).json({error: "The authorization header is missing"});
     }
 
-    if (!distributionUri) {
-        res.status(418).json({error: "The distribution URI parameter is missing"});
-        return;
-    }
 
-    if (!clojure) {
+    if (!req.body || !req.body.clojure) {
         res.status(418).json({error: "The clojure transformation code is missing"});
         return;
     }
 
-    request.get({
-        url: endpointOntotext + "/catalog/distributions/file",
-        headers: {
-            'distrib-id': distributionUri,
-            Authorization: apiAuthorization
-        }
-    }, function(err, response, body) {
+    var clojure = req.body.clojure;
 
+    downloadRaw(req, res, function(response, body){
         var type = req.body.transformationType === "graft" ? "graft" : "pipe";
 
-        if (response.statusCode === 200) {
-            /*request.post({
-                url: endpointGraftwerk+"/evaluate/"+type,
-                json: true,
-                formData: {
-                    pipeline: {
-                        value: clojure,
-                        options: {
-                            filename: 'pipeline.clj',
-                            contentType: 'text/plain'
-                        }
-                    },
-                    data: {
-                        value: body,
-                        options: {
-                            filename: 'data.csv',
-                            contentType: 'text/csv'
-                        }
-                    },
-                    command: req.body.command || 'my-pipe'
-                }
-            }, function(err, response, body) {
-                res.status(response.statusCode);
-
-                res.contentType('text/plain');
-                res.send(body);
-                return;
-            });
-            return;*/
-            request.post({
-                url: endpointOntotext+"/dapaas-services/grafter/transformation/preview",
-                json: true,
-                headers: {
-                    // 'transformation-id': transformationUri
-                    "command": req.query.command || "my-pipe",
-                    "transformation-type": req.query.transformationType || "pipe",
-                    Authorization: apiAuthorization
-                },
-                formData: {
-                    "input-file": {
-                        value: body,
-                        options: {
-                            filename: 'data.csv',
-                            contentType: 'text/csv'
-                        }
-                    },
-                    "transformation-code": {
-                    value: clojure,
+        request.post({
+            url: endpointOntotext+"/dapaas-services/grafter/transformation/preview",
+            json: true,
+            headers: {
+                "command": req.query.command || "my-pipe",
+                "transformation-type": req.query.transformationType || "pipe",
+                Authorization: auth
+            },
+            formData: {
+                "input-file": {
+                    value: body,
                     options: {
                         filename: 'data.csv',
                         contentType: 'text/csv'
                     }
                 },
-                } 
-            }, function(err, response, body) {
-                res.status(response.statusCode);
-
-                res.contentType('text/plain');
-                res.send(body);
-                return;
-            });
-            return;
-        }
-
-        res.status(response.statusCode);
-
-        res.contentType('text/plain');
-        res.send(body);
-        return;
+                "transformation-code": {
+                    value: clojure,
+                    options: {
+                        filename: 'data.csv',
+                        contentType: 'text/csv'
+                    }
+                }
+            } 
+        }, function(err, response, body) {
+            genericSuccessCallback(err, response, body, res);
+        });
     });
 });
 
 app.get('/download', function(req, res) {
 
-    var distributionUri = req.query.distribution,
-        transformationUri = req.query.transformation;
-
-    if (!distributionUri) {
-        res.status(418).json({error: "The distribution URI parameter is missing"});
-        return;
+    var auth = req.headers.authorization || req.query.key;
+    if (!auth) {
+        res.status(401).json({error: "The authorization header is missing"});
     }
+
+    var transformationUri = req.query.transformation;
 
     if (!transformationUri) {
         res.status(418).json({error: "The transformation URI parameter is missing"});
         return;
     }
 
-    request.get({
-        url: endpointOntotext + "/catalog/distributions/file",
-        headers: {
-            'distrib-id': distributionUri,
-            Authorization: apiAuthorization
-        }
-    }, function(err, response, bodyFile) {
+    downloadRaw(req, res, function(response, bodyFile){
+        request.get({
+            url: endpointOntotext + "/catalog/transformations/code/clojure",
+            headers: {
+                'transformation-id': transformationUri,
+                Authorization: auth
+            }
+        }, function(err, response, bodyClojure) {
+            if (err || (response && response.statusCode !== 200)) {
+                sendRequestError(err, response, body);
+                return;
+            }
 
-        if (response.statusCode === 200) {
-            request.get({
-                url: endpointOntotext + "/catalog/transformations/code/clojure",
-                headers: {
-                    'transformation-id': transformationUri,
-                    Authorization: apiAuthorization
-                }
-            }, function(err, response, bodyClojure) {
-                if (response.statusCode === 200) {
-                    request.post({
-                        url: endpointGraftwerk+"/evaluate/graft",
-                        json: true,
-                        formData: {
-                            pipeline: {
-                                value: bodyClojure,
-                                options: {
-                                    filename: 'pipeline.clj',
-                                    contentType: 'text/plain'
-                                }
-                            },
-                            data: {
-                                value: bodyFile,
-                                options: {
-                                    filename: 'data.csv',
-                                    contentType: 'text/csv'
-                                }
-                            },
-                            command: req.query.command || 'my-graft'
+            request.post({
+                url: endpointGraftwerk+"/evaluate/graft",
+                json: true,
+                formData: {
+                    pipeline: {
+                        value: bodyClojure,
+                        options: {
+                            filename: 'pipeline.clj',
+                            contentType: 'text/plain'
                         }
-                    }, function(err, response, body) {
+                    },
+                    data: {
+                        value: bodyFile,
+                        options: {
+                            filename: 'data.csv',
+                            contentType: 'text/csv'
+                        }
+                    },
+                    command: req.query.command || 'my-graft'
+                }
+            }, function(err, response, body) {
 
-                        res.status(response.statusCode);
-                        res.contentType('application/n-triples');
-                        res.setHeader('Content-disposition', 'attachment; filename=output.nt');
-                        res.send(body);
-                    });
+                if (err || (response && response.statusCode !== 200)) {
+                    sendRequestError(err, response, body);
                     return;
                 }
 
                 res.status(response.statusCode);
-                res.contentType('text/plain');
-                res.send(bodyClojure);
+                res.contentType('application/n-triples');
+                res.setHeader('Content-disposition', 'attachment; filename=output.nt');
+                res.send(body);
             });
-            return;
-        }
+        });
 
-        res.status(response.statusCode);
-        res.contentType('text/plain');
-        res.send(bodyFile);
     });
 });
 
