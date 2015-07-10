@@ -43,7 +43,7 @@ var genericSuccessCallback = function(err, response, body, res) {
 
 var downloadRaw = function(req, res, callbackSuccess) {
 
-    var auth = req.headers.authorization;
+    var auth = req.headers.authorization || req.query.authorization;
 
     if (!auth) {
         res.status(401).json({error: "The authorization header is missing"});
@@ -69,7 +69,7 @@ var downloadRaw = function(req, res, callbackSuccess) {
         }
     }, function(err, response, body) {
         if (err || (response && response.statusCode !== 200)) {
-            sendRequestError(err, response, body);
+            sendRequestError(err, response, body, res);
         } else {
             callbackSuccess(response, body); 
         }
@@ -161,12 +161,13 @@ app.post('/preview', jsonParser, function(req, res) {
 
 app.get('/download', function(req, res) {
 
-    var auth = req.headers.authorization || req.query.key;
+    var auth = req.headers.authorization || req.query.authorization;
     if (!auth) {
         res.status(401).json({error: "The authorization header is missing"});
+        return;
     }
 
-    var transformationUri = req.query.transformation;
+    var transformationUri = req.query.transformationUri;
 
     if (!transformationUri) {
         res.status(418).json({error: "The transformation URI parameter is missing"});
@@ -182,7 +183,7 @@ app.get('/download', function(req, res) {
             }
         }, function(err, response, bodyClojure) {
             if (err || (response && response.statusCode !== 200)) {
-                sendRequestError(err, response, body);
+                sendRequestError(err, response, body, res);
                 return;
             }
 
@@ -209,7 +210,7 @@ app.get('/download', function(req, res) {
             }, function(err, response, body) {
 
                 if (err || (response && response.statusCode !== 200)) {
-                    sendRequestError(err, response, body);
+                    sendRequestError(err, response, body, res);
                     return;
                 }
 
