@@ -108,21 +108,19 @@ public class VocabularyDAO {
 		return SUCCESS;
 	}
 	
-	public Iterator<String> getClassAndPropertyFromVocabulary(String name, String location, String fileContent){
+	public Boolean getClassAndPropertyFromVocabulary(String name, String namespace, String location, String fileContent, 
+			List<String> classlist, List<String> propertylist){
 		Model model = ModelFactory.createDefaultModel();
 		Model resultModel = ModelFactory.createDefaultModel();
 		
-		if( location.isEmpty() ){
-			model.read(new ByteArrayInputStream(fileContent.getBytes()), null);
+		if (location.isEmpty()){
+			model.read(new ByteArrayInputStream(fileContent.getBytes()), null, getFileExtension(location));
 		}
 		else{
 			FileManager.get().readModel( model, location, getFileExtension(location) );
 		}
-		
-		
 
 		ResultSet res;
-		List<String> list = new ArrayList<String>();
 		
 		String pre = StrUtils.strjoinNL
 	            ("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
@@ -139,95 +137,112 @@ public class VocabularyDAO {
 		try {
 			res = qe.execSelect();
 			
-			while( res.hasNext()) {
+			while (res.hasNext()) {
 				QuerySolution soln = res.next();
 				RDFNode a = soln.get("?classname");
-				list.add(name + ":" + a.asResource().getLocalName());
+
+				if (a.asResource().getNameSpace().equals(namespace)){
+					classlist.add(name + ":" + a.asResource().getLocalName());
+				}
 			}
 		} finally {
 			qe.close();
 		}
 		
 		//get owl classes
-		String qs1 = StrUtils.strjoinNL
+		String qsOwlClass = StrUtils.strjoinNL
 	            ( "SELECT DISTINCT ?classname WHERE{ "
 	            , " ?classname a owl:Class. }") ;
         
-		Query q1 = QueryFactory.create(pre+"\n"+qs1) ;
-		QueryExecution qe1 = QueryExecutionFactory.create(q1, model);
+		Query qOwlClass = QueryFactory.create(pre+"\n"+qsOwlClass) ;
+		QueryExecution qeOwlClass = QueryExecutionFactory.create(qOwlClass, model);
 		
 		try {
-			res = qe1.execSelect();
+			res = qeOwlClass.execSelect();
 			
-			while( res.hasNext()) {
+			while (res.hasNext()) {
 				QuerySolution soln = res.next();
 				RDFNode a = soln.get("?classname");
-				list.add(name + ":" + a.asResource().getLocalName());
+				if (a.asResource().getNameSpace().equals(namespace)){
+					if (classlist.contains(name + ":" + a.asResource().getLocalName()) == false){
+						classlist.add(name + ":" + a.asResource().getLocalName());
+					}
+				}
 			}
 		} finally {
 			qe.close();
 		}
 		
 		//get rdf properties
-		String qs2 = StrUtils.strjoinNL
+		String qsProperty = StrUtils.strjoinNL
 	            ( "SELECT DISTINCT ?classname WHERE{ "
-	            , " ?classname a rdfs:Property. }") ;
+	            , " ?classname a rdf:Property. }") ;
         
-		Query q2 = QueryFactory.create(pre+"\n"+qs2) ;
-		QueryExecution qe2 = QueryExecutionFactory.create(q2, model);
+		Query qProperty = QueryFactory.create(pre+"\n"+qsProperty) ;
+		QueryExecution qeProperty = QueryExecutionFactory.create(qProperty, model);
 		
 		try {
-			res = qe2.execSelect();
+			res = qeProperty.execSelect();
 			
-			while( res.hasNext()) {
+			while (res.hasNext()) {
 				QuerySolution soln = res.next();
 				RDFNode a = soln.get("?classname");
-				list.add(name + ":" + a.asResource().getLocalName());
+				if (a.asResource().getNameSpace().equals(namespace)){
+					propertylist.add(name + ":" + a.asResource().getLocalName());
+				}
 			}
 		} finally {
 			qe.close();
 		}
 		
 		//get owl properties
-		String qs3 = StrUtils.strjoinNL
+		String qsOwlProperty = StrUtils.strjoinNL
 	            ( "SELECT DISTINCT ?classname WHERE{ "
 	            , " ?classname a owl:ObjectProperty. }") ;
         
-		Query q3 = QueryFactory.create(pre+"\n"+qs3) ;
-		QueryExecution qe3 = QueryExecutionFactory.create(q3, model);
+		Query qOwlProperty = QueryFactory.create(pre+"\n"+qsOwlProperty) ;
+		QueryExecution qeOwlProperty = QueryExecutionFactory.create(qOwlProperty, model);
 		
 		try {
-			res = qe3.execSelect();
+			res = qeOwlProperty.execSelect();
 			
-			while( res.hasNext()) {
+			while (res.hasNext()) {
 				QuerySolution soln = res.next();
 				RDFNode a = soln.get("?classname");
-				list.add(name + ":" + a.asResource().getLocalName());
+				if (a.asResource().getNameSpace().equals(namespace)){
+					if (propertylist.contains(name + ":" + a.asResource().getLocalName()) == false){
+						propertylist.add(name + ":" + a.asResource().getLocalName());
+					}
+				}
 			}
 		} finally {
 			qe.close();
 		}
 		
-		String qs4 = StrUtils.strjoinNL
+		String qsOwlDataProperty = StrUtils.strjoinNL
 	            ( "SELECT DISTINCT ?classname WHERE{ "
 	            , " ?classname a owl:DatatypeProperty. }") ;
         
-		Query q4 = QueryFactory.create(pre+"\n"+qs4) ;
-		QueryExecution qe4 = QueryExecutionFactory.create(q4, model);
+		Query qOwlDataProperty = QueryFactory.create(pre+"\n"+qsOwlDataProperty) ;
+		QueryExecution qeOwlDataProperty = QueryExecutionFactory.create(qOwlDataProperty, model);
 		
 		try {
-			res = qe4.execSelect();
+			res = qeOwlDataProperty.execSelect();
 			
-			while( res.hasNext()) {
+			while (res.hasNext()) {
 				QuerySolution soln = res.next();
 				RDFNode a = soln.get("?classname");
-				list.add(name + ":" + a.asResource().getLocalName());
+				if (a.asResource().getNameSpace().equals(namespace)){
+					if (propertylist.contains(name + ":" + a.asResource().getLocalName()) == false){
+						propertylist.add(name + ":" + a.asResource().getLocalName());
+					}
+				}
 			}
 		} finally {
 			qe.close();
 		}
 		
-		return list.iterator();
+		return true;
 	}
 	
 	//delete vocabulary based on vocabulary name
@@ -279,7 +294,8 @@ public class VocabularyDAO {
 	}
 	
 	//search vocabulary based on keyword
-	public Iterator<String> searchVocabulary(String keyword) throws Exception{
+	public Boolean searchVocabulary(String keyword, List<String> classList, 
+			List<String> propertyList) throws Exception{
 		
 		String prefix = "";
 		String name = keyword;
@@ -292,32 +308,27 @@ public class VocabularyDAO {
 		Dataset dataset = getDatasetSearch(true);
 		dataset.begin(ReadWrite.READ);
 		
-		List<String> resultList = new ArrayList<String>();
 		ResultSet res;
 		
 		String pre = StrUtils.strjoinNL
 	            ("PREFIX text: <http://jena.apache.org/text#>"
 	            , "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
 	            , "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>") ;
-	    String qs = StrUtils.strjoinNL
+	    String qsclass = StrUtils.strjoinNL
 	            ( "SELECT ?label "
 	            , "{{ ?s text:query (rdfs:label '*" + name + "*'). "
-	            , "?s rdfs:label ?label.} UNION { GRAPH ?g {"
+	            , "?s rdfs:label ?label. ?s rdf:type 'class'.} UNION "
+	            , "{ GRAPH ?g {"
 	            , "?s text:query (rdfs:label '*" + name + "*')."
 	            , "?s rdfs:label ?label."
+	            , "?s rdf:type 'class'."
 	            , "}}}") ;
-	    
-	    /*
-		String qs1 = StrUtils.strjoinNL
-	            ( "SELECT ?label {"
-	            , "{?s ?o ?label. } UNION { GRAPH ?g { ?s ?o ?label } }"
-	            , "FILTER regex(str(?label), '.*"+ keyword +".*')}") ;
-		*/
-		Query q = QueryFactory.create(pre+"\n"+qs) ;
+
+		Query qclass = QueryFactory.create(pre+"\n"+qsclass) ;
 		
-		QueryExecution qe = QueryExecutionFactory.create(q, dataset);
+		QueryExecution qeclass = QueryExecutionFactory.create(qclass, dataset);
 		try {
-			res = qe.execSelect();
+			res = qeclass.execSelect();
 			while( res.hasNext()) {
 				QuerySolution soln = res.next();
 				RDFNode label = soln.get("?label");
@@ -325,21 +336,51 @@ public class VocabularyDAO {
 				if( null != label ){
 					String str = label.toString();
 					if(str.contains(prefix)){
-						resultList.add(str);
+						classList.add(str);
 					}
 				}
 			}
 		} finally {
-			qe.close();
+			qeclass.close();
+		}
+		
+		String qsproperty = StrUtils.strjoinNL
+	            ( "SELECT ?label "
+	            , "{{ ?s text:query (rdfs:label '*" + name + "*'). "
+	            , "?s rdfs:label ?label. ?s rdf:type 'property'.} UNION "
+	            , "{ GRAPH ?g {"
+	            , "?s text:query (rdfs:label '*" + name + "*')."
+	            , "?s rdfs:label ?label."
+	            , "?s rdf:type 'property'."
+	            , "}}}") ;
+
+		Query qproperty = QueryFactory.create(pre+"\n"+qsproperty) ;
+		
+		QueryExecution qeproperty = QueryExecutionFactory.create(qproperty, dataset);
+		try {
+			res = qeproperty.execSelect();
+			while( res.hasNext()) {
+				QuerySolution soln = res.next();
+				RDFNode label = soln.get("?label");
+				
+				if( null != label ){
+					String str = label.toString();
+					if(str.contains(prefix)){
+						propertyList.add(str);
+					}
+				}
+			}
+		} finally {
+			qeproperty.close();
 		}
 		
 		dataset.commit();
 		
-		//testDataset(dataset);
+		testDataset(dataset);
 		dataset.end();
 		dataset.close();
 		
-		return resultList.iterator();
+		return true;
 	}
 	
 	//get a list of vocabulary name
@@ -472,7 +513,8 @@ public class VocabularyDAO {
 	private boolean extractClassesandProperties(Model originModel, Model resultModel, String vocabulary_name){
 		
 		ResultSet res;
-		Property predicate = resultModel.createProperty("http://www.w3.org/2000/01/rdf-schema#label");
+		Property label = resultModel.createProperty("http://www.w3.org/2000/01/rdf-schema#label");
+		Property type = resultModel.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
 		
 		String pre = StrUtils.strjoinNL
 	            ("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
@@ -496,7 +538,9 @@ public class VocabularyDAO {
 				Resource subject =  resultModel.createResource(a.asResource().getNameSpace() + vocabulary_name + "_" + a.asResource().getLocalName());
 				Literal object = resultModel.createLiteral(vocabulary_name + ":" + a.asResource().getLocalName());
 				rdfclassNr++;
-				subject.addProperty(predicate, object);
+				Literal classLiteral = resultModel.createLiteral("class");
+				subject.addProperty(label, object);
+				subject.addProperty(type, classLiteral);
 			}
 		} finally {
 			qe.close();
@@ -520,7 +564,10 @@ public class VocabularyDAO {
 				Resource subject =  resultModel.createResource(a.asResource().getNameSpace() + vocabulary_name + "_" + a.asResource().getLocalName());
 				Literal object = resultModel.createLiteral(vocabulary_name + ":" + a.asResource().getLocalName());
 				owlclassNr++;
-				subject.addProperty(predicate, object);
+				subject.addProperty(label, object);
+				Literal classLiteral = resultModel.createLiteral("class");
+				subject.addProperty(label, object);
+				subject.addProperty(type, classLiteral);
 			}
 		} finally {
 			qe.close();
@@ -544,7 +591,11 @@ public class VocabularyDAO {
 				Resource subject =  resultModel.createResource(a.asResource().getNameSpace() + vocabulary_name + "_" + a.asResource().getLocalName());
 				Literal object = resultModel.createLiteral(vocabulary_name + ":" + a.asResource().getLocalName());
 				rdfpropertyNr++;
-				subject.addProperty(predicate, object);
+				subject.addProperty(label, object);
+				
+				Literal propertyLiteral = resultModel.createLiteral("property");
+				subject.addProperty(label, object);
+				subject.addProperty(type, propertyLiteral);
 			}
 		} finally {
 			qe.close();
@@ -568,7 +619,11 @@ public class VocabularyDAO {
 				Resource subject =  resultModel.createResource(a.asResource().getNameSpace() + vocabulary_name + "_" + a.asResource().getLocalName());
 				Literal object = resultModel.createLiteral(vocabulary_name + ":" + a.asResource().getLocalName());
 				owlobjectPropertyNr++;
-				subject.addProperty(predicate, object);
+				subject.addProperty(label, object);
+				
+				Literal propertyLiteral = resultModel.createLiteral("property");
+				subject.addProperty(label, object);
+				subject.addProperty(type, propertyLiteral);
 			}
 		} finally {
 			qe.close();
@@ -591,7 +646,11 @@ public class VocabularyDAO {
 				Resource subject =  resultModel.createResource(a.asResource().getNameSpace() + vocabulary_name + "_" + a.asResource().getLocalName());
 				Literal object = resultModel.createLiteral(vocabulary_name + ":" + a.asResource().getLocalName());
 				owldataobjectPropertyNr++;
-				subject.addProperty(predicate, object);
+				subject.addProperty(label, object);
+				
+				Literal propertyLiteral = resultModel.createLiteral("property");
+				subject.addProperty(label, object);
+				subject.addProperty(type, propertyLiteral);
 			}
 		} finally {
 			qe.close();

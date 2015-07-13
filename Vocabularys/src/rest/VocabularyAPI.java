@@ -1,6 +1,10 @@
 package rest;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.GET;
@@ -57,8 +61,7 @@ public class VocabularyAPI {
 			logger.info( "returnString: " + returnString );
 			
 		} catch(Exception e) {
-			e.printStackTrace();
-			return Response.status(500).entity("Server was not able to process your request").build();
+			return Response.status(500).entity(getStackTrace(e)).build();
 		}
 		
 		return Response.ok(returnString).build();
@@ -80,21 +83,32 @@ public class VocabularyAPI {
 		try {
 			JSONObject partsData = new JSONObject(data);
 			
-			Iterator<String> it = dao.getClassAndPropertyFromVocabulary(partsData.optString("name"), partsData.optString("path"), partsData.optString("data"));
+			List<String> classList = new ArrayList<String>();
+			List<String> propertyList = new ArrayList<String>();
 			
-			json = getJsonFromObject(it, true);
-			
-			jsonObject.put("http_code", "200");
-			jsonObject.put("message", "Search sucessful");
-			jsonObject.put("result", json);
-			
+			//get a list of class and a list of property from file.
+			if(dao.getClassAndPropertyFromVocabulary(
+					partsData.optString("name"), 
+					partsData.optString("namespace"), 
+					partsData.optString("path"), 
+					partsData.optString("data"),
+					classList,
+					propertyList)){
+				jsonObject.put("message", "get class and property info sucessful");
+				json = getJsonFromObject(classList.iterator(), true);
+				jsonObject.put("classResult", json);
+				json = getJsonFromObject(propertyList.iterator(), true);
+				jsonObject.put("propertyResult", json);
+			}else{
+				jsonObject.put("message", "Some error happens in data access");
+				jsonObject.put("result", json);
+			}
 			returnString = jsonObject.toString();
 			
 			logger.info( "returnString: " + returnString );
 			
 		} catch(Exception e) {
-			e.printStackTrace();
-			return Response.status(500).entity("Server was not able to process your request").build();
+			return Response.status(500).entity(getStackTrace(e)).build();
 		}
 		
 		return Response.ok(returnString).build();
@@ -161,23 +175,27 @@ public class VocabularyAPI {
 		String returnString = null;
 		JSONArray json = new JSONArray();
 		JSONObject jsonObject = new JSONObject();
+		List<String> classList = new ArrayList<String>();
+		List<String> propertyList = new ArrayList<String>();
 		
 		try {
 			VocabularyDAO dao = new VocabularyDAO();
 			
-			Iterator<String> it = dao.searchVocabulary(keyword);
-			
-			json = getJsonFromObject(it, true);
-			
-			jsonObject.put("http_code", "200");
-			jsonObject.put("message", "Search sucessful");
-			jsonObject.put("result", json);
-			
+			//here we return a list of class and a list of properties for two kinds of search
+			if(dao.searchVocabulary(keyword, classList, propertyList)){
+				jsonObject.put("message", "Search success");
+				json = getJsonFromObject(classList.iterator(), true);
+				jsonObject.put("classResult", json);
+				json = getJsonFromObject(propertyList.iterator(), true);
+				jsonObject.put("propertyResult", json);
+			}else{
+				jsonObject.put("message", "Search failed due to data access problem");
+			}
+
 			returnString = jsonObject.toString();
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			return Response.status(500).entity("Server was not able to process your request").build();
+			return Response.status(500).entity(getStackTrace(e)).build();
 		}
 		
 		return Response.ok(returnString).build();
@@ -322,7 +340,10 @@ public class VocabularyAPI {
 	
 	private JSONArray getJsonFromObject(Iterator<String> it, boolean bSearch) throws JSONException
 	{
-	    JSONArray jsonArray = new JSONArray();
+		JSONArray jsonArray = new JSONArray();
+		if (it == null){
+			return jsonArray;
+		}
 	    
 	    while (it.hasNext()){
 	    	String vocabulary = it.next();
@@ -333,6 +354,15 @@ public class VocabularyAPI {
 	    }
 	    
 	    return jsonArray;
+	}
+	
+	private String getStackTrace(Exception e){
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		String str = sw.toString();
+		
+		return str;
 	}
 }
 
