@@ -47,9 +47,7 @@ public class VocabularyAPI {
 			
 			JSONObject partsData = new JSONObject(data);
 			
-			int httpcode = dao.insertVocabulary(partsData.optString("name"), partsData.optString("namespace"), partsData.optString("path"));
-			
-			if( httpcode == 200 ) {
+			if (dao.insertVocabulary(partsData.optString("name"), partsData.optString("namespace"), partsData.optString("path"))) {
 				jsonObject.put("http_code", "200");
 				jsonObject.put("message", "Vocabulary has been added successfully");
 
@@ -87,7 +85,7 @@ public class VocabularyAPI {
 			List<String> propertyList = new ArrayList<String>();
 			
 			//get a list of class and a list of property from file.
-			if(dao.getClassAndPropertyFromVocabulary(
+			if (dao.getClassAndPropertyFromVocabulary(
 					partsData.optString("name"), 
 					partsData.optString("namespace"), 
 					partsData.optString("path"), 
@@ -121,17 +119,13 @@ public class VocabularyAPI {
 	public Response returnAllVocabulary() throws Exception {
 		
 		String returnString = null;
-		Response rb = null;	
-		JSONArray json = new JSONArray();
+		Response response = null;	
 		JSONObject jsonObject = new JSONObject();
 		
 		try {
-			
 			VocabularyDAO dao = new VocabularyDAO();
 			
 			Map<String, String> retMap = dao.getAllVocabularyName();
-			
-			Iterator<Map.Entry<String, String>> it = retMap.entrySet().iterator();
 			
 		    JSONArray jsonArray = new JSONArray();
 		    
@@ -146,13 +140,12 @@ public class VocabularyAPI {
 				jsonArray.put(formDetailsJson).toString();
 		    }
 
-			jsonObject.put("http_code", "200");
 			jsonObject.put("Message", "Get Vocabulary successfully");
 			jsonObject.put("result", jsonArray);
 			
 			returnString = jsonObject.toString();
 			
-			rb = Response.ok(returnString).build();
+			response = Response.ok(returnString).build();
 			logger.info( "returnString: " + returnString );
 			
 		}
@@ -160,7 +153,7 @@ public class VocabularyAPI {
 			e.printStackTrace();
 		}
 		
-		return rb;
+		return response;
 	}
 	
 	//search vocabulary based on keyword
@@ -182,7 +175,7 @@ public class VocabularyAPI {
 			VocabularyDAO dao = new VocabularyDAO();
 			
 			//here we return a list of class and a list of properties for two kinds of search
-			if(dao.searchVocabulary(keyword, classList, propertyList)){
+			if (dao.searchVocabulary(keyword, classList, propertyList)){
 				jsonObject.put("message", "Search success");
 				json = getJsonFromObject(classList.iterator(), true);
 				jsonObject.put("classResult", json);
@@ -238,36 +231,35 @@ public class VocabularyAPI {
 	*/
 	
 	//auto complete
-		@Path("/autocomplete")
-		@GET
-		@Produces(MediaType.APPLICATION_JSON)
-		public Response autoComplete()
-				throws Exception {
-			
-			String returnString = null;
-			JSONArray json = new JSONArray();
-			JSONObject jsonObject = new JSONObject();
-			
-			try {
-				VocabularyDAO dao = new VocabularyDAO();
-				
-				Iterator<String> it = dao.getAutoComplete();
-				
-				json = getJsonFromObject(it, true);
-				
-				jsonObject.put("http_code", "200");
-				jsonObject.put("message", "get autocomplete sucessful");
-				jsonObject.put("result", json);
-				
-				returnString = jsonObject.toString();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				return Response.status(500).entity("Server was not able to process your request").build();
-			}
-			
-			return Response.ok(returnString).build();
+	@Path("/autocomplete")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response autoComplete()
+			throws Exception {
+
+		String returnString = null;
+		JSONArray json = new JSONArray();
+		JSONObject jsonObject = new JSONObject();
+
+		try {
+			VocabularyDAO dao = new VocabularyDAO();
+
+			Iterator<String> it = dao.getAutoComplete();
+
+			json = getJsonFromObject(it, true);
+
+			jsonObject.put("message", "get autocomplete sucessful");
+			jsonObject.put("result", json);
+
+			returnString = jsonObject.toString();
 		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return Response.status(500).entity("Server was not able to process your request").build();
+		}
+
+		return Response.ok(returnString).build();
+	}
 	
 	//delete vocabulary based on vocabulary name
 	@Path("/delete")
@@ -285,10 +277,7 @@ public class VocabularyAPI {
 			JSONObject partsData = new JSONObject(data);
 			String name = partsData.optString("name") + "_" + partsData.optString("namespace");
 			
-			http_code = dao.deleteVocabulary(name);
-			
-			if(http_code == 200) {
-				jsonObject.put("http_code", "200");
+			if (dao.deleteVocabulary(name)) {
 				jsonObject.put("message", "Vocabulary has been deleted successfully");
 			} else {
 				return Response.status(500).entity("Server was not able to process your request").build();
@@ -321,10 +310,7 @@ public class VocabularyAPI {
 			JSONObject partsData = new JSONObject(data);
 			logger.info( "jsonData: " + partsData.toString() );
 			
-			int http_code = dao.updataVocabulary(partsData.optString("name"), partsData.optString("namespace"), partsData.optString("path"));
-			
-			if(http_code == 200) {
-				jsonObject.put("http_code", "200");
+			if (dao.updataVocabulary(partsData.optString("name"), partsData.optString("namespace"), partsData.optString("path"))) {
 				jsonObject.put("message", "Vocabulary has been updated successfully");
 			} else {
 				return Response.status(500).entity("Server was not able to process your request").build();
@@ -335,6 +321,57 @@ public class VocabularyAPI {
 			return Response.status(500).entity("Server was not able to process your request").build();
 		}
 		
+		returnString = jsonObject.toString();
+		
+		return Response.ok(returnString).build();
+	}
+	
+	//get class and property from vocabulary
+	@Path("/validate")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response ValidateTriples(String data) throws Exception{
+		logger.info( "invoke getClassAndPropertyFromVocabulary: " + data );
+
+		JSONObject jsonObject = new JSONObject();
+		JSONArray json = new JSONArray();
+		String returnString = null;
+		VocabularyDAO dao = new VocabularyDAO();
+
+		try {
+			JSONObject partsData = new JSONObject(data);
+
+			String retMsg = null;
+			//0-no error, 1-warning, 2-error
+			//validate new triple
+			int errorLevel = dao.validateTriples(partsData.optString("data"), retMsg);
+
+			switch(errorLevel){
+			case 0:
+				jsonObject.put("errorlevel", "Correct");
+				break;
+			case 1:
+				jsonObject.put("errorlevel", "Warning");
+				break;
+			case 2:
+				jsonObject.put("errorlevel", "Error");
+				break;
+			default:
+				jsonObject.put("errorlevel", "Correct");
+				break;	
+			}
+
+			jsonObject.put("message", retMsg);
+
+			returnString = jsonObject.toString();
+
+			logger.info( "returnString: " + returnString );
+
+		} catch(Exception e) {
+			return Response.status(500).entity(getStackTrace(e)).build();
+		}
+
 		return Response.ok(returnString).build();
 	}
 	

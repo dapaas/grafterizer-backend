@@ -35,44 +35,18 @@ import com.hp.hpl.jena.vocabulary.RDFS;
 
 import org.apache.log4j.Logger; 
 
+import validation.TripleValidation;
+
 public class VocabularyDAO {
 	
 	static int SUCCESS = 200;
 	static int FAIL = 500;
 	private static Logger logger = Logger.getLogger(VocabularyDAO.class); 
 	
-	private static Dataset getDataset() throws Exception {
-		return TDBFactory.createDataset("VocabDataset");
-	}
-	
-	// get a dataset with lucene index, lucene index is used for search.
-	private static Dataset getDatasetSearch(boolean addLuceneIndex) throws Exception {
-		TextQuery.init();
-		
-		Dataset datasetSearch = TDBFactory.createDataset("VocabDatasetSearch");
-			
-	    // Define the index mapping 
-	    EntityDefinition entDef = new EntityDefinition("uri", "text", RDFS.label.asNode());
-	    
-	    Directory dir = null;
-	    try{
-		    // Lucene, index file
-	    	dir = FSDirectory.open(new File("index-directory"));
-	    }
-	    catch(Exception e){
-	        	
-	    }
-	    
-	    // Join together into a dataset
-	    datasetSearch = TextDatasetFactory.createLucene(datasetSearch, dir, entDef, null) ;
-
-		return datasetSearch;
-	}
-	
 	// add new vocabulary
-	public int insertVocabulary(String name, String prefix, String location) throws Exception{
+	public boolean insertVocabulary(String name, String prefix, String location) throws Exception{
 		if (name.isEmpty() || location.isEmpty() || prefix.isEmpty()){
-			return FAIL;
+			return false;
 		}
 		
 		//get dataset and model
@@ -105,13 +79,12 @@ public class VocabularyDAO {
 		Vocabularymodel.close();
 		searchModel.close();
 		
-		return SUCCESS;
+		return true;
 	}
 	
 	public Boolean getClassAndPropertyFromVocabulary(String name, String namespace, String location, String fileContent, 
 			List<String> classlist, List<String> propertylist){
 		Model model = ModelFactory.createDefaultModel();
-		Model resultModel = ModelFactory.createDefaultModel();
 		
 		if (location.isEmpty()){
 			model.read(new ByteArrayInputStream(fileContent.getBytes()), null, getFileExtension(location));
@@ -246,10 +219,10 @@ public class VocabularyDAO {
 	}
 	
 	//delete vocabulary based on vocabulary name
-	public int deleteVocabulary(String name) throws Exception{
+	public boolean deleteVocabulary(String name) throws Exception{
 		
 		if (name.isEmpty()){
-			return FAIL;
+			return false;
 		}
 		
 		Dataset dataset = getDataset();
@@ -265,14 +238,14 @@ public class VocabularyDAO {
 		dataset.close();
 
 		
-		return SUCCESS;
+		return true;
 	}
 	
 	//update vocabulary with a new uri
-	public int updataVocabulary(String name, String namespace, String newPath) throws Exception{
+	public boolean updataVocabulary(String name, String namespace, String newPath) throws Exception{
 		
 		if (name.isEmpty() || newPath.isEmpty() || namespace.isEmpty()){
-			return FAIL;
+			return false;
 		}
 		
 		Dataset dataset = getDataset();
@@ -290,7 +263,7 @@ public class VocabularyDAO {
 		dataset.end();
 		dataset.close();
 
-		return SUCCESS;
+		return true;
 	}
 	
 	//search vocabulary based on keyword
@@ -450,6 +423,44 @@ public class VocabularyDAO {
 		
 		return resultList.iterator();
 	}
+	
+	public int validateTriples(String data, String errMsg){
+		int errorLevel = 0;
+		
+		TripleValidation validation = new TripleValidation();
+		
+		return errorLevel;
+	}
+	
+	
+	private static Dataset getDataset() throws Exception {
+		return TDBFactory.createDataset("VocabDataset");
+	}
+	
+	// get a dataset with lucene index, lucene index is used for search.
+	private static Dataset getDatasetSearch(boolean addLuceneIndex) throws Exception {
+		TextQuery.init();
+		
+		Dataset datasetSearch = TDBFactory.createDataset("VocabDatasetSearch");
+			
+	    // Define the index mapping 
+	    EntityDefinition entDef = new EntityDefinition("uri", "text", RDFS.label.asNode());
+	    
+	    Directory dir = null;
+	    try{
+		    // Lucene, index file
+	    	dir = FSDirectory.open(new File("index-directory"));
+	    }
+	    catch(Exception e){
+	        	
+	    }
+	    
+	    // Join together into a dataset
+	    datasetSearch = TextDatasetFactory.createLucene(datasetSearch, dir, entDef, null) ;
+
+		return datasetSearch;
+	}
+	
 	
 	static int teststatistic = 0;
 	

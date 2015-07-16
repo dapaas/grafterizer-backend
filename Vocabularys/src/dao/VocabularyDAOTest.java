@@ -18,14 +18,14 @@ public class VocabularyDAOTest {
 
 	@Test
 	public void testInsertVocabulary() {
-		int ret = 500;
+		boolean ret = false;
 		try{
 			ret = dao.insertVocabulary("foaf", "http://xmlns.com/foaf/0.1/", "http://xmlns.com/foaf/spec/index.rdf");
 		}catch(Exception e){
 			
 		}
 		
-		assertEquals(200, ret);
+		assertEquals(true, ret);
 	}
 	
 	@Test
@@ -40,19 +40,19 @@ public class VocabularyDAOTest {
 
 	@Test
 	public void testDeleteVocabulary() {
-		int ret = 500;
+		boolean ret = false;
 		try{
 			ret = dao.deleteVocabulary("foaf");
 		}catch(Exception e){
 			
 		}
 		
-		assertEquals(200, ret);
+		assertEquals(true, ret);
 	}
 
 	@Test
 	public void testUpdataVocabulary() {
-		int ret = 500;
+		boolean ret = false;
 		try{
 			//ret = dao.updataVocabulary("foaf", "http://www.w3.org/2003/01/geo/wgs84_pos");
 		}catch(Exception e){
