@@ -1,0 +1,27 @@
+{
+  "restApiRoot": "/backend/sharing",
+  "host": "0.0.0.0",
+  "port": 8087,
+  "remoting": {
+    "context": {
+      "enableHttpContext": false
+    },
+    "rest": {
+      "normalizeHttpPath": false,
+      "xml": false
+    },
+    "json": {
+      "strict": false,
+      "limit": "10mb"
+    },
+    "urlencoded": {
+      "extended": true,
+      "limit": "10mb"
+    },
+    "cors": false,
+    "errorHandler": {
+      "disableStackTrace": false
+    }
+  },
+  "legacyExplorer": false
+}

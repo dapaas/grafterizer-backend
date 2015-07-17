@@ -1,0 +1,29 @@
+{
+  "name": "function",
+  "plural": "functions",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "clojure": {
+      "type": "string",
+      "required": true
+    },
+    "documentation": {
+      "type": "string"
+    },
+    "downloads": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": []
+}

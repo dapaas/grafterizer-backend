@@ -1,0 +1,11 @@
+{
+  "db": {
+    "name": "db",
+    "connector": "memory"
+  },
+  "persistent": {
+    "name": "persistent",
+    "connector": "sqlite",
+    "file_name": "database.db"
+  }
+}
