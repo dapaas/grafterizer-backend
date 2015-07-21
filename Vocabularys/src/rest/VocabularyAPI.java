@@ -47,7 +47,10 @@ public class VocabularyAPI {
 			
 			JSONObject partsData = new JSONObject(data);
 			
-			if (dao.insertVocabulary(partsData.optString("name"), partsData.optString("namespace"), partsData.optString("path"))) {
+			if (dao.insertVocabulary(partsData.optString("name"), 
+					partsData.optString("namespace"), 
+					partsData.optString("path"), 
+					partsData.optString("data"))) {
 				jsonObject.put("http_code", "200");
 				jsonObject.put("message", "Vocabulary has been added successfully");
 
@@ -90,6 +93,7 @@ public class VocabularyAPI {
 					partsData.optString("namespace"), 
 					partsData.optString("path"), 
 					partsData.optString("data"),
+					partsData.optString("islocal"),
 					classList,
 					propertyList)){
 				jsonObject.put("message", "get class and property info sucessful");
@@ -342,7 +346,7 @@ public class VocabularyAPI {
 		try {
 			JSONObject partsData = new JSONObject(data);
 
-			String retMsg = null;
+			StringBuilder retMsg = new StringBuilder();
 			//0-no error, 1-warning, 2-error
 			//validate new triple
 			int errorLevel = dao.validateTriples(partsData.optString("data"), retMsg);

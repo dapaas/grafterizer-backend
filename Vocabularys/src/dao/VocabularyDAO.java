@@ -29,6 +29,8 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.RDFS;
@@ -38,23 +40,27 @@ import org.apache.log4j.Logger;
 import validation.TripleValidation;
 
 public class VocabularyDAO {
-	
-	static int SUCCESS = 200;
-	static int FAIL = 500;
+
 	private static Logger logger = Logger.getLogger(VocabularyDAO.class); 
 	
 	// add new vocabulary
-	public boolean insertVocabulary(String name, String prefix, String location) throws Exception{
-		if (name.isEmpty() || location.isEmpty() || prefix.isEmpty()){
+	public boolean insertVocabulary(String prefix, String namespace, String location, String fileContent) throws Exception{
+		if (prefix.isEmpty() || location.isEmpty() || namespace.isEmpty()){
 			return false;
 		}
 		
 		//get dataset and model
 		Dataset datasetVocab = getDataset();
-		Model Vocabularymodel = ModelFactory.createDefaultModel();
-		FileManager.get().readModel( Vocabularymodel, location, getFileExtension(location) );
+		Model model = ModelFactory.createDefaultModel();
 		
-		Dataset datasetSearch = getDatasetSearch(true);
+		if (location.isEmpty()){
+			model.read(new ByteArrayInputStream(fileContent.getBytes()), null, getFileExtension(location));
+		}
+		else{
+			FileManager.get().readModel( model, location, getFileExtension(location) );
+		}
+		
+		Dataset datasetSearch = getDatasetSearch();
 		Model searchModel = ModelFactory.createDefaultModel();
 		
 		datasetSearch.begin(ReadWrite.WRITE);
@@ -62,10 +68,10 @@ public class VocabularyDAO {
 		
 		//create a search model and put all class name, property name in it, as a index for search.
 		//vocabularyModel is used for save all the triple about a vocabulary.
-		extractClassesandProperties(Vocabularymodel, searchModel, name);
+		extractClassesandProperties(model, searchModel, prefix);
 		
-		datasetSearch.addNamedModel(name + "_" + prefix, searchModel);
-		datasetVocab.addNamedModel(name + "_" + prefix, Vocabularymodel);
+		datasetSearch.addNamedModel(namespace + "_" + prefix, searchModel);
+		datasetVocab.addNamedModel(namespace, model);
 
 		datasetVocab.commit();
 		datasetVocab.end();
@@ -76,17 +82,17 @@ public class VocabularyDAO {
 		datasetSearch.end();
 		datasetSearch.close();
 		
-		Vocabularymodel.close();
+		model.close();
 		searchModel.close();
 		
 		return true;
 	}
 	
 	public Boolean getClassAndPropertyFromVocabulary(String name, String namespace, String location, String fileContent, 
-			List<String> classlist, List<String> propertylist){
+			String islocal, List<String> classlist, List<String> propertylist){
 		Model model = ModelFactory.createDefaultModel();
 		
-		if (location.isEmpty()){
+		if (islocal == "true"){
 			model.read(new ByteArrayInputStream(fileContent.getBytes()), null, getFileExtension(location));
 		}
 		else{
@@ -226,18 +232,34 @@ public class VocabularyDAO {
 		}
 		
 		Dataset dataset = getDataset();
+		Dataset datasetSearch = getDatasetSearch();
+		
+		datasetSearch.begin(ReadWrite.WRITE);
+		
+		if (datasetSearch.containsNamedModel(name)){
+			datasetSearch.removeNamedModel(name);	
+		}
+		
+		datasetSearch.commit();
+		datasetSearch.end();
+		datasetSearch.close();
+		
+		String namespace = name;
+		
+		if(name.indexOf("_") > 0){
+			namespace = name.substring(0, name.indexOf("_"));
+		}
 		
 		dataset.begin(ReadWrite.WRITE);
 		
-		if (dataset.containsNamedModel(name)){
-			dataset.removeNamedModel(name);	
+		if (dataset.containsNamedModel(namespace)){
+			dataset.removeNamedModel(namespace);	
 		}
 		
 		dataset.commit();
 		dataset.end();
 		dataset.close();
 
-		
 		return true;
 	}
 	
@@ -262,6 +284,21 @@ public class VocabularyDAO {
 		dataset.commit();
 		dataset.end();
 		dataset.close();
+		
+		Dataset datasetSearch = getDataset();
+		
+		datasetSearch.begin(ReadWrite.WRITE);
+		
+		if (datasetSearch.containsNamedModel(name)){
+			Model model = ModelFactory.createDefaultModel();
+			com.hp.hpl.jena.util.FileManager.get().readModel( model, newPath, "RDF/XML" );
+			
+			dataset.replaceNamedModel(namespace, model);
+		}
+		
+		datasetSearch.commit();
+		datasetSearch.end();
+		datasetSearch.close();
 
 		return true;
 	}
@@ -273,12 +310,12 @@ public class VocabularyDAO {
 		String prefix = "";
 		String name = keyword;
 		if( keyword.contains(":") ){
-			 prefix = keyword.substring(0, keyword.indexOf(":") - 1);
+			 prefix = keyword.substring(0, keyword.indexOf(":"));
 			 name = keyword.substring(keyword.indexOf(":") + 1, keyword.length());
 		}
 		
 		//get dataset connection
-		Dataset dataset = getDatasetSearch(true);
+		Dataset dataset = getDatasetSearch();
 		dataset.begin(ReadWrite.READ);
 		
 		ResultSet res;
@@ -297,7 +334,7 @@ public class VocabularyDAO {
 	            , "?s rdf:type 'class'."
 	            , "}}}") ;
 
-		Query qclass = QueryFactory.create(pre+"\n"+qsclass) ;
+		Query qclass = QueryFactory.create(pre + "\n" + qsclass) ;
 		
 		QueryExecution qeclass = QueryExecutionFactory.create(qclass, dataset);
 		try {
@@ -327,7 +364,7 @@ public class VocabularyDAO {
 	            , "?s rdf:type 'property'."
 	            , "}}}") ;
 
-		Query qproperty = QueryFactory.create(pre+"\n"+qsproperty) ;
+		Query qproperty = QueryFactory.create(pre + "\n" + qsproperty) ;
 		
 		QueryExecution qeproperty = QueryExecutionFactory.create(qproperty, dataset);
 		try {
@@ -349,7 +386,7 @@ public class VocabularyDAO {
 		
 		dataset.commit();
 		
-		testDataset(dataset);
+		//testDataset(dataset);
 		dataset.end();
 		dataset.close();
 		
@@ -359,27 +396,31 @@ public class VocabularyDAO {
 	//get a list of vocabulary name
 	public Map<String, String> getAllVocabularyName() throws Exception{
 		
+		Dataset datasetsearch = getDatasetSearch();
 		Dataset dataset = getDataset();
+
 		Iterator<String> it;
 		Map<String, String> ret = new HashMap<>();
 		
-		dataset.begin(ReadWrite.READ);
+		datasetsearch.begin(ReadWrite.READ);
 		
 		try {
-			 it = dataset.listNames();
-			 dataset.commit() ;
-	    } finally { dataset.end() ; }
-		
-		dataset.close();
+			 it = datasetsearch.listNames();
+			 datasetsearch.commit() ;
+	    } finally { datasetsearch.end() ; }
+		testDataset(datasetsearch);
+		datasetsearch.close();
 		
 		while( it.hasNext() ){
 			String str = it.next();
 			if(str.indexOf("_") > 0){
-				String name = str.substring(0, str.indexOf("_"));
-				String namespace = str.substring(str.indexOf("_") + 1, str.length());
+				String namespace = str.substring(0, str.indexOf("_"));
+				String name = str.substring(str.indexOf("_") + 1, str.length());
 				ret.put(name, namespace);
 			}
 		}
+		
+		
 
 		return ret;
 	}
@@ -388,7 +429,7 @@ public class VocabularyDAO {
 	public Iterator<String> getAutoComplete() throws Exception{
 		
 		//get dataset connection
-		Dataset dataset = getDatasetSearch(true);
+		Dataset dataset = getDatasetSearch();
 		dataset.begin(ReadWrite.READ);
 		
 		List<String> resultList = new ArrayList<String>();
@@ -424,11 +465,74 @@ public class VocabularyDAO {
 		return resultList.iterator();
 	}
 	
-	public int validateTriples(String data, String errMsg){
+	public int validateTriples(String data, StringBuilder errMsg) throws Exception{
 		int errorLevel = 0;
 		
-		TripleValidation validation = new TripleValidation();
+		Dataset dataset = getDataset();
 		
+		Model model = ModelFactory.createDefaultModel();
+		model.read(new ByteArrayInputStream(data.getBytes()), null, "TURTLE");
+		
+		List<String> list = new ArrayList<String>();
+		Iterator<String> str = dataset.listNames();
+		while(str.hasNext())
+		{
+			list.add(str.next());
+		}
+		
+		//get new added triple
+		StmtIterator iter = model.listStatements();
+		Statement newStatement = null;
+		if( iter != null ){
+			while( iter.hasNext() ){
+				newStatement = iter.nextStatement();
+			}
+		}
+		
+		TripleValidation validation = new TripleValidation();
+		StringBuilder err = new StringBuilder();
+		
+		if( validation.loadVocabulary(dataset, model, newStatement, err) ){
+			errorLevel = 0;
+			System.out.print(err.toString());
+		}
+		else{
+			errorLevel = 1;
+			errMsg = err;
+			System.out.print(errMsg.toString());
+			return errorLevel;
+		}
+		/*
+		if( validation.validateDefinition(dataset, model, newStatement, err) ){
+			errorLevel = 0;
+		}
+		else{
+			errorLevel = 1;
+			errMsg = err;
+			System.out.print(errMsg.toString());
+			return errorLevel;
+		}
+		
+		if( validation.validateDomain(model, newStatement, err) ){
+			errorLevel = 0;
+		}
+		else{
+			errorLevel = 1;
+			errMsg = err;
+			System.out.print(errMsg.toString());
+			return errorLevel;
+		}
+		
+		if( validation.validateRange(model, newStatement, err) ){
+			errorLevel = 0;
+		}
+		else{
+			errorLevel = 1;
+			errMsg = err;
+			System.out.print(errMsg.toString());
+			return errorLevel;
+		}
+		*/
 		return errorLevel;
 	}
 	
@@ -438,7 +542,7 @@ public class VocabularyDAO {
 	}
 	
 	// get a dataset with lucene index, lucene index is used for search.
-	private static Dataset getDatasetSearch(boolean addLuceneIndex) throws Exception {
+	private static Dataset getDatasetSearch() throws Exception {
 		TextQuery.init();
 		
 		Dataset datasetSearch = TDBFactory.createDataset("VocabDatasetSearch");
@@ -587,7 +691,7 @@ public class VocabularyDAO {
 		//get rdf properties
 		String qs2 = StrUtils.strjoinNL
 	            ( "SELECT DISTINCT ?classname WHERE{ "
-	            , " ?classname a rdfs:Property. }") ;
+	            , " ?classname a rdf:Property. }") ;
         
 		Query q2 = QueryFactory.create(pre+"\n"+qs2) ;
 		QueryExecution qe2 = QueryExecutionFactory.create(q2, originModel);
