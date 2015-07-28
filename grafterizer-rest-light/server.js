@@ -45,7 +45,12 @@ var getAttachmentInfos = function(response) {
         return defaultInfos;
     }
 
-    var disposition = contentDisposition.parse(response.headers['content-disposition']);
+    var disposition;
+    try {
+        disposition = contentDisposition.parse(response.headers['content-disposition']);
+    } catch (e){
+        return defaultInfos;
+    }
 
     if (!disposition.parameters || !disposition.parameters.filename) {
         return defaultInfos;
