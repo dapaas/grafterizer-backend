@@ -7,7 +7,8 @@ var express = require('express'),
     contentDisposition = require('content-disposition'),
     path = require('path'),
     bodyParser = require('body-parser'),
-    filesizeParser = require('filesize-parser');
+    filesizeParser = require('filesize-parser'),
+    raven = require('raven');
 
 if (process.env.DEBUG) {
     require('request-debug')(request);
@@ -23,6 +24,10 @@ var app = express();
 app.use(compression());
 app.use(morgan('short'));
 app.use(cors());
+
+if (process.env.SENTRY) {
+    app.use(raven.middleware.express(process.env.SENTRY));
+}
 
 var jsonParser = bodyParser.json();
 
