@@ -8,7 +8,9 @@ var express = require('express'),
     path = require('path'),
     bodyParser = require('body-parser'),
     filesizeParser = require('filesize-parser'),
-    raven = require('raven');
+    raven = require('raven'),
+    escape = require('escape-html');
+    concat = require('concat-stream');
 
 if (process.env.DEBUG) {
     require('request-debug')(request);
@@ -25,9 +27,7 @@ app.use(compression());
 app.use(morgan('short'));
 app.use(cors());
 
-if (process.env.SENTRY) {
-    app.use(raven.middleware.express(process.env.SENTRY));
-}
+var log = new raven.Client(process.env.SENTRY);
 
 var jsonParser = bodyParser.json();
 
@@ -72,7 +72,7 @@ var getAttachmentInfos = function(response) {
     };
 };
 
-var downloadRaw = function(req, res, callbackSuccess) {
+var downloadRaw = function(req, res) {
 
     var auth = req.headers.authorization || req.query.authorization;
 
@@ -101,6 +101,11 @@ var downloadRaw = function(req, res, callbackSuccess) {
     })
     .on('error', function(err){
         res.status(500).json({error: err});
+        log.captureMessage("Unable to download the raw transformation", {
+            extra: {
+                error: err
+            }
+        });
     })
 };
 
@@ -147,6 +152,10 @@ app.get('/original', function(req, res) {
             }
         }).on('error', function(err) {
             res.status(500).json({error: err});
+            log.captureMessage("Unable to transform the file using the original transformation", {
+            extra: {
+                error: err
+            }});
         }).pipe(res);
 
     });
@@ -209,25 +218,40 @@ app.post('/preview', jsonParser, function(req, res) {
             } 
         }).on('error', function(err) {
             res.status(500).json({error: err});
+            log.captureMessage("Unable to preview the file", {
+                extra: {
+                    error: err
+                }
+            });
         }).pipe(res);
     });
 });
 
 var downloadErrorText = '<h3>An error has occured.</h3>'
+    + '<p><code></pre>{{OUTPUT}}</pre></code></p>'
     + '<p><a href="http://project.dapaas.eu/dapaas-contact-us">Please contact us.</a></p>';
 
 app.get('/download', function(req, res) {
 
+    var showDownloadError = function(status, message) {
+        res.status(status);
+        if (!req.query.raw) {
+            res.send(downloadErrorText.replace("{{OUTPUT}}", escape(message)));
+        } else {
+            res.json({error: message});
+        }
+    };
+
     var auth = req.headers.authorization || req.query.authorization;
     if (!auth) {
-        res.status(401).json({error: "The authorization header is missing"});
+        showDownloadError(401, "The authorization header is missing");
         return;
     }
 
     var transformationUri = req.query.transformationUri;
 
     if (!transformationUri) {
-        res.status(418).json({error: "The transformation URI parameter is missing"});
+        showDownloadError(418, "The transformation URI parameter is missing");
         return;
     }
 
@@ -240,7 +264,12 @@ app.get('/download', function(req, res) {
     }, function(err, response, bodyClojure) {
 
         if (err || (response && response.statusCode !== 200)) {
-            res.status(500).send(downloadErrorText);
+            showDownloadError(500, "Unable to load the clojure code");
+            log.captureMessage("Unable to load the clojure code", {
+                extra: {
+                    error: err
+                }
+            });
             return;
         };
 
@@ -251,7 +280,12 @@ app.get('/download', function(req, res) {
 
         dataStream.on('response', function(response) {
             if (!response || response.statusCode !== 200) {
-                res.status(500).send(downloadErrorText);
+                showDownloadError(500, "The raw data is invalid");
+                log.captureMessage("The returned raw data is invalid", {
+                    extra: {
+                        response: response ? response.statusCode : 'response empty'
+                    }
+                });
                 return;
             };
 
@@ -284,10 +318,27 @@ app.get('/download', function(req, res) {
             });
 
             resultStream.on('error', function(err) {
-                res.status(500).send(downloadErrorText);
+                showDownloadError(500, "Unable to execute the transformation");
+                log.captureMessage("Unable to execute the transformation", {
+                    extra: {
+                        error: err
+                    }
+                });
+                return;
             }).on('response', function(response){
+
                 if (!response || response.statusCode !== 200) {
-                    res.status(500).send(downloadErrorText);
+                    var outputError = concat(function(graftwerkOutput) {
+                        showDownloadError(500, graftwerkOutput);
+                    });
+    
+                    resultStream.pipe(outputError);
+
+                    log.captureMessage("The transformed data is invalid", {
+                        extra: {
+                            response: response ? response.statusCode : 'response empty'
+                        }
+                    });
                     return;
                 };
 
