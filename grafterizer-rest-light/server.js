@@ -126,30 +126,39 @@ app.get('/original', function(req, res) {
 
         var streamInfos = getAttachmentInfos(response);
 
+        var formData = {
+            pipeline: {
+                value: '(defpipe my-pipe [data-file] (-> (read-dataset data-file)))',
+                options: {
+                    filename: 'pipeline.clj',
+                    contentType: 'text/plain'
+                }
+            },
+            data: {
+                value: stream,
+                options: {
+                    filename: streamInfos.filename,
+                    contentType: streamInfos.mime,
+                    knownLength: 10000000000
+                }
+            },
+            command: req.query.command || 'my-pipe'
+        };
+
+        if (typeof req.query.page !== undefined) {
+            formData.page = parseInt(req.query.page) || 0;
+        }
+
+        if (req.query.pageSize) {
+            formData["page-size"] = parseInt(req.query.pageSize) || 50;
+        }
+
         request.post({
             url: endpointGraftwerk+"/evaluate/pipe",
             headers: {
                 'transfer-encoding': 'chuncked'
             },
-            // json: true,
-            formData: {
-                pipeline: {
-                    value: '(defpipe my-pipe [data-file] (-> (read-dataset data-file)))',
-                    options: {
-                        filename: 'pipeline.clj',
-                        contentType: 'text/plain'
-                    }
-                },
-                data: {
-                    value: stream,
-                    options: {
-                        filename: streamInfos.filename,
-                        contentType: streamInfos.mime,
-                        knownLength: 10000000000
-                    }
-                },
-                command: req.query.command || 'my-pipe'
-            }
+            formData: formData
         }).on('error', function(err) {
             res.status(500).json({error: err});
             log.captureMessage("Unable to transform the file using the original transformation", {
@@ -188,34 +197,39 @@ app.post('/preview', jsonParser, function(req, res) {
 
         var streamInfos = getAttachmentInfos(response);
 
+        var formData = {
+            "data": {
+                value: stream,
+                options: {
+                    filename: streamInfos.filename,
+                    contentType: streamInfos.mime,
+                    knownLength: 10000000000
+                }
+            },
+            "pipeline": {
+                value: clojure,
+                options: {
+                    filename: 'pipeline.clj',
+                    contentType: 'text/plain'
+                }
+            },
+            command: req.query.command || ('my-'+type)
+        };
+
+        if (typeof req.body.page !== undefined) {
+            formData.page = parseInt(req.body.page) || 0;
+        }
+
+        if (req.body.pageSize) {
+            formData["page-size"] = parseInt(req.body.pageSize) || 50;
+        }
+
         request.post({
-            // url: endpointOntotext+"/dapaas-services/grafter/transformation/preview",
             url: endpointGraftwerk+"/evaluate/"+type,
-            // json: true,
             headers: {
-                // "command": req.query.command || "my-pipe",
-                // "transformation-type": req.query.transformationType || "pipe",
-                // Authorization: auth,
                 'transfer-encoding': 'chuncked'
             },
-            formData: {
-                "data": {
-                    value: stream,
-                    options: {
-                        filename: streamInfos.filename,
-                        contentType: streamInfos.mime,
-                        knownLength: 10000000000
-                    }
-                },
-                "pipeline": {
-                    value: clojure,
-                    options: {
-                        filename: 'pipeline.clj',
-                        contentType: 'text/plain'
-                    }
-                },
-                command: req.query.command || ('my-'+type)
-            } 
+            formData: formData
         }).on('error', function(err) {
             res.status(500).json({error: err});
             log.captureMessage("Unable to preview the file", {
