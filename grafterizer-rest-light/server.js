@@ -12,6 +12,9 @@ var bodyParser = require('body-parser');
 var raven = require('raven');
 var escape = require('escape-html');
 var concat = require('concat-stream');
+var temp = require('temp');
+var fs = require('fs');
+var constants = require('constants');
 
 if (process.env.DEBUG) {
   require('request-debug')(request);
@@ -255,21 +258,7 @@ app.post('/preview', jsonParser, function(req, res) {
   });
 });
 
-var downloadErrorText = '<h3>An error has occured.</h3>' + '<p><code></pre>{{OUTPUT}}</pre></code></p>' +
-  '<p><a href="http://project.dapaas.eu/dapaas-contact-us">Please contact us.</a></p>';
-
-app.get('/download', function(req, res) {
-
-  var showDownloadError = function(status, message) {
-    res.status(status);
-    if (!req.query.raw) {
-      res.send(downloadErrorText.replace('{{OUTPUT}}', escape(message)));
-    } else {
-      res.json({
-        error: message
-      });
-    }
-  };
+var executeTransformation = function(req, res, successCallback, showDownloadError) {
 
   var auth = req.headers.authorization || req.query.authorization;
   if (!auth) {
@@ -371,25 +360,139 @@ app.get('/download', function(req, res) {
           return;
         }
 
-        delete response.headers['content-disposition'];
-        delete response.headers['content-type'];
-        delete response.headers.server;
-
         var filename = dataStreamInfos.name.replace(/[^a-zA-Z0-9_\-]/g, '') + '-processed';
+        successCallback(resultStream, response, filename, type);
 
-        if (type === 'graft') {
-          res.contentType('application/n-triples');
-          res.setHeader('content-disposition', 'attachment; filename=' + filename + '.nt');
-        } else {
-          res.contentType('text/csv');
-          res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
-        }
-
-        resultStream.pipe(res);
       });
 
     });
   });
+};
+
+var downloadErrorText = '<h3>An error has occured.</h3>' + '<p><code></pre>{{OUTPUT}}</pre></code></p>' +
+  '<p><a href="http://project.dapaas.eu/dapaas-contact-us">Please contact us.</a></p>';
+
+app.get('/download', function(req, res) {
+
+  var showDownloadError = function(status, message) {
+    res.status(status);
+    if (!req.query.raw) {
+      res.send(downloadErrorText.replace('{{OUTPUT}}', escape(message)));
+    } else {
+      res.json({
+        error: message
+      });
+    }
+  };
+
+  var successCallback = function(resultStream, response, filename, type) {
+
+    delete response.headers['content-disposition'];
+    delete response.headers['content-type'];
+    delete response.headers.server;
+
+    if (type === 'graft') {
+      res.contentType('application/n-triples');
+      res.setHeader('content-disposition', 'attachment; filename=' + filename + '.nt');
+    } else {
+      res.contentType('text/csv');
+      res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
+    }
+
+    resultStream.pipe(res);
+  };
+
+  executeTransformation(req, res, successCallback, showDownloadError);
+});
+
+app.get('/save', function(req, res) {
+  var showDownloadError = function(status, message) {
+    res.status(status).json({
+      error: message
+    });
+  };
+
+  var successCallback = function(resultStream, response, filename, type) {
+    var metadata = {
+      '@context': {
+        dcat:'http://www.w3.org/ns/dcat#',
+        foaf:'http://xmlns.com/foaf/0.1/',
+        dct:'http://purl.org/dc/terms/',
+        xsd:'http://www.w3.org/2001/XMLSchema#',
+        'dct:issued':{'@type':'xsd:date'},
+        'dct:modified':{'@type':'xsd:date'},
+        'foaf:primaryTopic':{'@type':'@id'},
+        'dcat:distribution':{'@type':'@id'}
+      },
+      '@type': 'dcat:Distribution',
+      'dct:title': type + ' computed transformation',
+      'dct:description': '[' + type + '] dataset transformed with Grafterizer',
+      'dcat:fileName': 'computed.' + (type === 'pipe' ? 'csv' : 'nt'),
+      'dcat:mediaType': (type === 'pipe' ? 'text/csv' : 'application/n-triples')
+    };
+
+    var datasetId = req.headers.datasetId || req.query.datasetId;
+    if (!datasetId) {
+      showDownloadError(418, 'The dataset ID parameter is missing');
+      return;
+    }
+
+    var auth = req.headers.authorization || req.query.authorization;
+
+    var tmpPath = temp.path('grafterizer-save', 's-');
+    /*jshint bitwise: false*/
+    var tmpWriteStream = fs.createWriteStream(tmpPath, {
+      flags: constants.O_CREAT | constants.O_TRUNC | constants.O_RDWR | constants.O_EXCL,
+      mode: '0600'
+    });
+    /*jshint bitwise: true*/
+
+    resultStream.pipe(tmpWriteStream);
+    tmpWriteStream.on('finish', function() {
+      request.post({
+        url: endpointOntotext + '/catalog/distributions',
+        headers: {
+          'dataset-id': datasetId,
+          Authorization: auth
+        },
+        formData: {
+          file: {
+            value: fs.createReadStream(tmpPath),
+            options: {
+              filename: 'file',
+              contentType: type === 'graft' ? 'application/n-triples' : 'text/csv',
+            }
+          },
+          meta: {
+            value: JSON.stringify(metadata),
+            options: {
+              filename: 'meta',
+              contentType: 'application/ld+json'
+            }
+          }
+        }
+      }, function(err, response, distributionData) {
+        fs.unlink(tmpPath);
+
+        console.log(distributionData);
+        if (err || (response && response.statusCode !== 200)) {
+          showDownloadError(500, 'Unable to save the executed transformation');
+          log.captureMessage('Unable to save the executed transformation', {
+            extra: {
+              error: err
+            }
+          });
+          return;
+        }
+
+        res.contentType('application/json').send(distributionData);
+      });
+
+    });
+
+  };
+
+  executeTransformation(req, res, successCallback, showDownloadError);
 });
 
 var serverPort = process.env.HTTP_PORT || 8080;
