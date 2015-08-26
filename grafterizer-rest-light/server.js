@@ -313,7 +313,7 @@ var executeTransformation = function(req, res, successCallback, showDownloadErro
         url: endpointGraftwerk + '/evaluate/' + type,
         headers: {
           'transfer-encoding': 'chuncked',
-          Accept: type === 'graft' ? 'application/n-triples' : 'text/csv'
+          Accept: type === 'graft' ? 'application/n-triples' : 'application/csv'
         },
         formData: {
           data: {
