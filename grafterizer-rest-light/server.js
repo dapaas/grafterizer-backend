@@ -431,6 +431,11 @@ app.get('/save', function(req, res) {
       'dcat:mediaType': (type === 'pipe' ? 'text/csv' : 'application/n-triples')
     };
 
+
+    var today = new Date();
+    today = today.toISOString().substring(0, 10);
+    metadata['dct:modified'] = metadata['dct:issued'] = today;
+
     var datasetId = req.headers.datasetId || req.query.datasetId;
     if (!datasetId) {
       showDownloadError(418, 'The dataset ID parameter is missing');
