@@ -431,7 +431,6 @@ app.get('/save', function(req, res) {
       'dcat:mediaType': (type === 'pipe' ? 'text/csv' : 'application/n-triples')
     };
 
-
     var today = new Date();
     today = today.toISOString().substring(0, 10);
     metadata['dct:modified'] = metadata['dct:issued'] = today;
@@ -498,6 +497,52 @@ app.get('/save', function(req, res) {
   };
 
   executeTransformation(req, res, successCallback, showDownloadError);
+});
+
+app.post('/fillRDFrepo', jsonParser, function(req, res) {
+  var repositoryUri = req.body.repositoryUri;
+
+  if (!repositoryUri) {
+    res.status(418).json({
+      error: 'The repositoryUri URI parameter is missing'
+    });
+    return;
+  }
+
+  var stream = downloadRaw(req, res);
+  if (!stream) return;
+  stream.on('response', function(response) {
+    if (!response || response.statusCode !== 200) {
+      stream.pipe(res);
+      return;
+    }
+
+    response.headers['content-type'] = 'text/x-nquads;charset=UTF-8';
+
+    var auth = req.headers.authorization || req.query.authorization;
+
+    var postReq = request.post({
+      url: repositoryUri + '/statements',
+      headers: {
+        //'content-type': 'text/x-nquads;charset=UTF-8',
+        Authorization: auth
+      },
+    }, function(err, response, data) {
+      if (err || (response && response.statusCode >= 300)) {
+        res.status(500).json({error: 'Unable to fill the repository'});
+        log.captureMessage('Unable to fill the repository', {
+          extra: {
+            error: err
+          }
+        });
+        return;
+      }
+
+      res.contentType('application/json').send(data);
+    });
+
+    stream.pipe(postReq);
+  });
 });
 
 var serverPort = process.env.HTTP_PORT || 8080;
