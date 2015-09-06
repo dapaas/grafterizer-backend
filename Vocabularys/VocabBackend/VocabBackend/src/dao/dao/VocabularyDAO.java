@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +17,6 @@ import org.apache.jena.query.text.TextDatasetFactory;
 import org.apache.jena.query.text.TextQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.Dataset;
@@ -38,7 +38,6 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.tdb.TDBFactory;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDFS;
-
 import org.apache.log4j.Logger;
 
 import validation.TripleValidation;
@@ -616,7 +615,7 @@ public class VocabularyDAO {
 		return strStatement;
 	}
 
-	public int validateTriples(String path, String data, Map<String, String> errorMap) throws Exception{
+	public int validateTriples(String path, String data, LinkedHashMap<String, String> errorMap) throws Exception{
 		int errorLevel = 0;
 		
 		Dataset dataset = getDataset();
@@ -696,7 +695,6 @@ public class VocabularyDAO {
 				StringBuilder err = new StringBuilder();
 				
 				String strStatement = formatTriple(statement, model);
-				
 				
 				//System.out.print(model.toString());
 				if( validation.validateDefinition(dataset, model, statement, err) ){

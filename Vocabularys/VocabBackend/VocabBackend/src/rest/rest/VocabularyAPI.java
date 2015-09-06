@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -393,7 +394,7 @@ public class VocabularyAPI {
 		try {
 			JSONObject partsData = new JSONObject(data);
 			
-			Map<String, String> errMap = new HashMap<String, String>();
+			LinkedHashMap<String, String> errMap = new LinkedHashMap<String, String>();
 			//0-no error, 1-warning, 2-error
 			//validate new triple
 			int errorLevel = dao.validateTriples("", partsData.optString("data"), errMap);
