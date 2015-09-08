@@ -1,0 +1,18 @@
+{
+  "name": "grafter-loadbalancer",
+  "version": "0.1.0",
+  "description": "This is a simple load balancer for Graftwerk.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Antoine Pultier",
+  "license": "ISC",
+  "dependencies": {
+    "agentkeepalive": "^2.0.3",
+    "aws-sdk": "^2.1.50",
+    "express": "^4.13.3",
+    "http-proxy": "^1.11.2",
+    "lodash": "^3.10.1"
+  }
+}
