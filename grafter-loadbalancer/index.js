@@ -3,6 +3,7 @@ var _ = require('lodash');
 var httpProxy = require('http-proxy');
 var getAWSIPs = require('./getAWSIPs.js');
 var Agent = require('agentkeepalive');
+var raven = require('raven');
 
 var serverPort = process.env.HTTP_PORT || 8081;
 var proxyTimeout = parseInt(process.env.PROXY_TIMEOUT) || 180000;
@@ -12,6 +13,8 @@ var maxFreeSockets = parseInt(process.env.MAX_FREE_SOCKETS) || 10;
 var updateTargetsInterval = parseInt(process.env.UPDATE_TARGETS_INTERVAL) || 90000;
 var latencyAverageWindow = parseInt(process.env.LATENCY_AVERAGE_WINDOW) || 30000;
 var latencyGroupBySize = parseInt(process.env.LATENCY_GROUPBY_SIZE) || 100;
+
+var log = new raven.Client(process.env.SENTRY);
 
 var graftwerkTargets = {};
 
@@ -55,6 +58,7 @@ proxy.on('error', function(err, req, res) {
     res.status(503).json({
       error: 'No Graftwerk server is available'
     });
+    log.captureMessage('After 3 tentatives, no Graftwerk server is available');
     return;
   }
 
@@ -106,6 +110,7 @@ var processRequest = function(req, res) {
     res.status(503).json({
       error: 'No Graftwerk server is available'
     });
+    log.captureMessage('No Graftwerk server is available');
     return;
   }
 
