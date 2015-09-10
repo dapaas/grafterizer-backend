@@ -107,9 +107,11 @@ var downloadRaw = function(req, res) {
       Authorization: auth
     }
   }).on('error', function(err) {
-    res.status(500).json({
-      error: err
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: err
+      });
+    }
     log.captureMessage('Unable to download the raw transformation', {
       extra: {
         error: err
@@ -169,9 +171,11 @@ app.get('/original', function(req, res) {
       },
       formData: formData
     }).on('error', function(err) {
-      res.status(500).json({
-        error: err
-      });
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: err
+        });
+      }
       log.captureMessage('Unable to transform the file using the original transformation', {
         extra: {
           error: err
@@ -246,9 +250,11 @@ app.post('/preview', jsonParser, function(req, res) {
       },
       formData: formData
     }).on('error', function(err) {
-      res.status(500).json({
-        error: err
-      });
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: err
+        });
+      }
       log.captureMessage('Unable to preview the file', {
         extra: {
           error: err
