@@ -1,3 +1,8 @@
+/**
+ * Small utility to remove all the files in a folder.
+ */
+
+'use strict';
 var fs = require('fs');
 
 module.exports = function(path) {

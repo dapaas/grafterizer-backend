@@ -1,46 +1,43 @@
 'use strict';
 
+// Q is a promise library that supports the deferred promise coding style
 var Q = require('q');
 
-class Cache extends Map {
-  // constructor() {}
-
-  /*addEntry(entry) {
-      console.log("je mange du chocolat")
-      this.entries.set(entry.hash, entry);
-  }
-
-  hasEntry(hash) {
-      return this.entries.has(hash);
-  }
-
-  getEntry(hash) {
-      return this.entries.get(hash);
-  }*/
-}
-
+// A cache entry correspond to a query identified by a hash
+// It contains t
 class CacheEntry {
   constructor(hash) {
     this.hash = hash;
+
+    // It is in process by default
     this.processing = true;
+
     this.statusCode = 0;
+
+    // The startTime is used to inform the client
+    // for how long the query is processing
     this.startTime = new Date();
-    this.location = './cache/' + hash;
+
+    // This is the deferred object for the promise used
+    // when the data is finally processed and saved
     this.deferred = null;
   }
 
+  // When the result is finally received from Graftwerk
   finalize(statusCode, contentType) {
     this.processing = false;
     this.statusCode = statusCode;
     this.contentType = contentType;
     this.endTime = new Date();
 
+    // Trigger the promise callbacks
     if (this.deferred) {
       this.deferred.resolve(statusCode);
       this.deferred = null;
     }
   }
 
+  // Lazy loading for the promise object
   get promise() {
     if (!this.processing) {
       throw 'the promise is only accessible during processing';
@@ -53,13 +50,16 @@ class CacheEntry {
     return this.deferred.promise;
   }
 
+  // When an error has occured, the cache entry must be rejected
   reject(err) {
+    // Reject the promise callbacks
     if (this.deferred) {
       this.deferred.reject(err);
       this.deferred = null;
     }
   }
 
+  // Serialize the Cache entry to a JSON object
   toJSON() {
 
     var json = {
@@ -80,6 +80,5 @@ class CacheEntry {
 }
 
 module.exports = {
-  Cache,
   CacheEntry
 };
