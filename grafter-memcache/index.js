@@ -12,8 +12,16 @@ var cors = require('cors');
 var compression = require('compression');
 var morgan = require('morgan');
 
-cleaning('./reqs/');
-cleaning('./cache/');
+var serverPort = process.env.HTTP_PORT || 8082;
+var waitingDelay = parseInt(process.env.WAITING_DELAY) || 15000;
+var cacheFolder = process.env.CACHE_FOLDER || './cache/';
+var reqsFolder = process.env.REQS_FOLDER || './reqs/';
+var cacheMaxAgeHeader = parseInt(process.env.MAX_HAGE) || 86400000;
+var graftwerkHostname = process.env.GRAFTWERK || '54.77.10.112';
+var graftwerkPort = process.env.GRAFTWERK_PORT || 8080;
+
+cleaning(reqsFolder);
+cleaning(cacheFolder);
 
 var cache = new sin.Cache();
 
@@ -40,7 +48,9 @@ app.use((req, res, next) => {
     inputHash.write(filename);
     inputHash.write(encoding);
     inputHash.write(mimetype);
-    file.pipe(inputHash);
+    file.pipe(inputHash, {
+      end: false
+    });
   });
 
   bus.on('field', (fieldname, val) => {
@@ -49,18 +59,14 @@ app.use((req, res, next) => {
   });
 
   var tempPath = temp.path({
-    dir: './reqs'
+    dir: reqsFolder
   });
 
-  var tempPath = temp.path({
-    dir: './reqs'
-  });
   var writeStream = fs.createWriteStream(tempPath);
 
   var hashKey = 'no-hash-key';
 
   writeStream.on('finish', () => {
-
 
     if (cache.has(hashKey)) {
       fs.unlink(tempPath);
@@ -76,41 +82,36 @@ app.use((req, res, next) => {
     var cacheLocation = cacheEntry.location;
     var readCacheStream = fs.createReadStream(cacheLocation);
     readCacheStream.on('error', () => {
-        console.log("IT?S NOT NDNNST NDNTCANASRUUHHUHUHFORM THE CACHE")
-        var readStream = fs.createReadStream(tempPath);
+      var readStream = fs.createReadStream(tempPath);
 
-        var lapin = http.request({
-          hostname: '54.77.10.112',
-          port: 8080,
-          method: req.method,
-          path: req.url,
-          headers: req.headers,
-        }, (response) => {
-          fs.unlink(tempPath);
-          // res.status(response.statusCode);
-          console.log("salut")
-            // response.pipe(res);
-
-          var cacheStream = fs.createWriteStream(cacheLocation);
-          response.pipe(cacheStream);
-          cacheStream.on('finish', () => {
-            cacheEntry.finalize(response.statusCode, response.headers['content-type']);
-          });
-        });
-
-        lapin.on('error', function(err) {
-          console.log("ceci est une erreur", err)
-          cache.delete(hashKey);
-        });
-
-        readStream.pipe(lapin);
-
-      })
-      .on('open', () => {
-        console.log("IT?S FORM THE CACHE")
+      var request = http.request({
+        hostname: graftwerkHostname,
+        port: graftwerkPort,
+        method: req.method,
+        path: req.url,
+        headers: req.headers
+      }, (response) => {
         fs.unlink(tempPath);
-        // readCacheStream.pipe(res);
+
+        var cacheStream = fs.createWriteStream(cacheLocation);
+        response.pipe(cacheStream);
+        cacheStream.on('finish', () => {
+          cacheEntry.finalize(response.statusCode, response.headers['content-type']);
+        });
       });
+
+      request.on('error', function(err) {
+        console.log('ERROR: ', err);
+        cacheEntry.reject(err);
+        cache.delete(hashKey);
+      });
+
+      readStream.pipe(request);
+    })
+
+    .on('open', () => {
+      fs.unlink(tempPath);
+    });
   });
 
   bus.on('finish', () => {
@@ -118,7 +119,7 @@ app.use((req, res, next) => {
 
     inputHash.end();
     hashKey = inputHash.read();
-    console.log('bonsoir', hashKey);
+    console.log('computed hash: ', hashKey);
 
   });
 
@@ -128,15 +129,15 @@ app.use((req, res, next) => {
 
 var sendFile = (res, cacheEntry) => {
   res.sendFile(cacheEntry.hash, {
-    root: './cache/',
-    maxAge: 86400000,
+    root: cacheFolder,
+    maxAge: cacheMaxAgeHeader,
     headers: {
       'Content-Type': cacheEntry.contentType
     }
   }, (err) => {
     if (err) {
-      // todo error
-      res.status(err.status).end();
+      console.log('SendFile error: ', err);
+      res.status(err.status || 500).end();
     }
   });
 };
@@ -151,29 +152,30 @@ app.get('/graftermemcache/:hash', (req, res) => {
   var cacheEntry = cache.get(hashKey);
 
   if (cacheEntry.processing) {
-    var cptTries = 0;
-    var intervalId = setInterval(() => {
-      console.log("check processing")
-      if (!cacheEntry.processing) {
-      console.log("cool")
+    var promise = cacheEntry.promise;
+
+    var timeoutId = setTimeout(function() {
+      res.status(204).end();
+      timeoutId = null;
+      res = null;
+    }, waitingDelay);
+
+    promise.then(() => {
+      if (timeoutId !== null) {
         sendFile(res, cacheEntry);
-        clearInterval(intervalId);
-      } else if (++cptTries > 10) {
-      console.log("give up")
-        res.json(cacheEntry.toJSON());
-        clearInterval(intervalId);
+        clearTimeout(timeoutId);
       }
     },
-    
-    100);
-    return;
-  }
 
-  sendFile(res, cacheEntry);
+    (error) => {
+      res.status(500).json(error);
+    });
+  } else {
+    sendFile(res, cacheEntry);
+  }
 
 });
 
-var serverPort = 8082;
 app.listen(serverPort, () => {
   console.log('LoadBalancer started on http://localhost:' + serverPort + '/');
 });
