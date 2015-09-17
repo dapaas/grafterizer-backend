@@ -65,8 +65,20 @@ proxy.on('proxyRes', function(lol, req) {
   printLatency(req);
 });
 
+var currentTargetIndex = 0;
+var selectTarget = function() {
+  if (currentTargetIndex >= graftwerkTargets.length) {
+    currentTargetIndex = 0;
+  }
+
+  return graftwerkTargets[currentTargetIndex];
+
+  ++currentTargetIndex;
+};
+
 var processRequest = function(req, res) {
-  var target = _.sample(graftwerkTargets);
+  // var target = _.sample(graftwerkTargets);
+  var target = selectTarget();
 
   if (!target) {
     res.status(503).json({
