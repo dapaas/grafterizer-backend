@@ -50,6 +50,12 @@ var compression = require('compression');
 // Morgan is a HTTP logging component.
 var morgan = require('morgan');
 
+// Length-stream is used to compute the size of a streams
+var lengthStream = require('length-stream');
+
+// Filesize parser is used to convert size such as 200kb to bytes
+var filesizeParser = require('filesize-parser');
+
 // Local dependencies
 var cleaning = require('./cleaning');
 var sin = require('./model.js');
@@ -88,8 +94,11 @@ var cacheMaxAgeHeader = parseInt(process.env.MAX_HAGE) || 86400000;
 // Graftwerk hostname and ports.
 // This component doesn't include loadbalancing. You can however configure a
 // loadbalancer and set the loadbalancer hostname here.
-var graftwerkHostname = process.env.GRAFTWERK || 'localhost';
+var graftwerkHostname = process.env.GRAFTWERK || 'graftwerk';
 var graftwerkPort = process.env.GRAFTWERK_PORT || 8080;
+
+// The maximum amount of storage that can be used in the cache
+var maxStorage = filesizeParser(process.env.MAX_STORAGE || '2gb');
 
 // We clear the reqs folder. This folder only contains the requests that are currently
 // received from the client or sent to Grafter. It is empty most of the time.
@@ -100,7 +109,7 @@ cleaning(reqsFolder);
 cleaning(cacheFolder);
 
 // The cache map has the SHA256 hash as key, and a Cache object as value.
-var cache = new Map();
+var cache = new sin.Cache();
 
 // Setting-up the express HTTP server
 var app = express();
@@ -137,6 +146,9 @@ app.use((req, res, next) => {
     return next();
   }
 
+  // We start by cleaning the cache
+  cache.clean(maxStorage, cacheFolder);
+
   // Form parsing initialization
   var bus = new Busboy({
     headers: req.headers
@@ -148,6 +160,12 @@ app.use((req, res, next) => {
   // the hexadecimal hash is computed.
   var inputHash = crypto.createHash('sha256');
   inputHash.setEncoding('hex');
+
+  // The url is part of the hash because it can be either graft or pipe
+  inputHash.write(req.url);
+
+  // the method is always POST in this version, but it may change
+  inputHash.write(req.method);
 
   // When an uploaded file has been detected in the POST query
   bus.on('file', (fieldname, file, filename, encoding, mimetype) => {
@@ -209,9 +227,6 @@ app.use((req, res, next) => {
     // trigger the eventuals event listeners
     res.json(cacheEntry);
 
-    // The cache location is a path in the cache filesystem
-    var cacheLocation = cacheFolder + hashKey;
-
     // Create the HTTP query to send to Graftwerk
     var request = http.request({
       hostname: graftwerkHostname,
@@ -223,14 +238,42 @@ app.use((req, res, next) => {
       // When we receive the response, we can finally remove the query
       fs.unlink(tempPath);
 
+      // The cache location is a path in the cache filesystem
+      var cacheLocation = cacheFolder + hashKey;
+
+      // If Graftwerk returned an error the cache must still be saved
+      // so the clients can fetch the errors
+      // but the lifetime of the cache entry is short so the user can
+      // try again after a delay
+      if (response.statusCode === 500) {
+        setTimeout(() => {
+          // The cache is removed from the collection
+          cache.delete(hashKey);
+
+          // and the filesystem data is removed as well
+          fs.unlink(cacheLocation);
+        }, 1000 * 60 * 15); // after 15 minutes
+      }
+
       // We save the response to the filesystem
       var cacheStream = fs.createWriteStream(cacheLocation);
       response.pipe(cacheStream);
 
+      var cacheStreamLength = 0;
+      response.pipe(lengthStream((length) => {
+        cacheStreamLength = length;
+      }));
+
       // When the filesystem has saved the response, we can mark it as processed
       // and trigger the eventual event listeners
       cacheStream.on('finish', () => {
-        cacheEntry.finalize(response.statusCode, response.headers['content-type']);
+        cacheEntry.finalize(response.statusCode, response.headers['content-type'], cacheStreamLength);
+        cache.addStreamLength(cacheStreamLength);
+
+        // We save the content-disposition header for some reasons
+        if (response.headers['content-disposition']) {
+          cacheEntry.contentDisposition = response.headers['content-disposition'];
+        }
       });
     });
 
@@ -277,17 +320,38 @@ app.use((req, res, next) => {
 
 // Send a file from a cache entry
 // We just use Express tools
-var sendFile = (res, cacheEntry) => {
+var sendFile = (req, res, cacheEntry) => {
+
+  // If the client ask for the status, we send the status
+  // instead of the cache content
+  if (req.query.status) {
+    res.json(cacheEntry);
+    return;
+  }
+
+  // We send the file with the same status than the one saved
+  res.status(cacheEntry.statusCode);
+
+  var headers = {
+    'Content-Type': cacheEntry.contentType
+  };
+
+  // We put back the content-disposition header if necessary
+  if (cacheEntry.contentDisposition) {
+    headers['Content-Disposition'] = cacheEntry.contentDisposition;
+  }
+
+  // We send the file using express.js
   res.sendFile(cacheEntry.hash, {
     root: cacheFolder,
     maxAge: cacheMaxAgeHeader,
-    headers: {
-      'Content-Type': cacheEntry.contentType
-    }
+    headers
   }, (err) => {
     if (err) {
       console.log('SendFile error: ', err);
-      res.status(err.status || 500).end();
+
+      // We close the client connection
+      res.end();
     }
   });
 };
@@ -323,7 +387,9 @@ app.get('/graftermemcache/:hash', (req, res) => {
     // As explained before, this is done like this to prevent HTTP timeouts that can
     // occurs.
     var timeoutId = setTimeout(function() {
-      // Send the empty response
+      // Send the empty response with no cache because the status will change
+      res.header('Cache-Control', 'no-cache, no-store');
+      res.header('Pragma', 'no-cache');
       res.status(204).end();
 
       // Remove the timeoutID, also used to notify the promise callback that the
@@ -340,8 +406,9 @@ app.get('/graftermemcache/:hash', (req, res) => {
     promise.then(() => {
       // If a timeout hasn't occured yet
       if (timeoutId !== null) {
+
         // It's time to send the file
-        sendFile(res, cacheEntry);
+        sendFile(req, res, cacheEntry);
 
         // And to cancel the timeout
         clearTimeout(timeoutId);
@@ -356,7 +423,7 @@ app.get('/graftermemcache/:hash', (req, res) => {
   } else {
     // If the data is already in the cache and has already been computed
     // we just need to send it
-    sendFile(res, cacheEntry);
+    sendFile(req, res, cacheEntry);
   }
 
 });
@@ -364,4 +431,5 @@ app.get('/graftermemcache/:hash', (req, res) => {
 // Starting the HTTP server
 app.listen(serverPort, () => {
   console.log('Grafter-memcache started on http://localhost:' + serverPort + '/');
+  console.log('Graftwerk endpoint: http://' + graftwerkHostname + ':' + graftwerkPort);
 });
