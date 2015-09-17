@@ -88,7 +88,7 @@ var cacheMaxAgeHeader = parseInt(process.env.MAX_HAGE) || 86400000;
 // Graftwerk hostname and ports.
 // This component doesn't include loadbalancing. You can however configure a
 // loadbalancer and set the loadbalancer hostname here.
-var graftwerkHostname = process.env.GRAFTWERK || '54.77.10.112';
+var graftwerkHostname = process.env.GRAFTWERK || 'localhost';
 var graftwerkPort = process.env.GRAFTWERK_PORT || 8080;
 
 // We clear the reqs folder. This folder only contains the requests that are currently
