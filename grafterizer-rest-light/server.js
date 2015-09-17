@@ -40,6 +40,11 @@ app.get('/', function(req, res) {
   res.send('Hei');
 });
 
+// Node mimetype is a bit empty
+mime.define({
+  'application/n-triples': ['nt']
+});
+
 // Returns information about the file, using the content-disposition header
 // Also returns default values as a failback (in CSV)
 var getAttachmentInfos = function(response) {
