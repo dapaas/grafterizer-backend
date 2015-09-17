@@ -22,6 +22,7 @@ if (process.env.DEBUG) {
 
 var endpointOntotext = process.env.ONTOTEXT || 'http://ontotext:8080';
 var endpointGraftwerk = process.env.GRAFTWERK || 'http://graftwerk:8080';
+var endpointGraftwerkCache = process.env.GRAFTWERK_CACHE || 'http://graftwerkcache:8082';
 /*var maxPreviewSize = process.env.MAX_PREVIEW_SIZE ?
   filesizeParser(process.env.MAX_PREVIEW_SIZE) : filesizeParser('10MiB');*/
 
@@ -117,6 +118,7 @@ var downloadRaw = function(req, res) {
         error: err
       });
     }
+
     log.captureMessage('Unable to download the raw transformation', {
       extra: {
         error: err
@@ -169,18 +171,22 @@ app.get('/original', function(req, res) {
       formData['page-size'] = parseInt(req.query.pageSize) || 50;
     }
 
+    var endpoint = req.query.useCache ? endpointGraftwerkCache : endpointGraftwerk;
+
     request.post({
-      url: endpointGraftwerk + '/evaluate/pipe',
+      url: endpoint + '/evaluate/pipe',
       headers: {
         'transfer-encoding': 'chuncked'
       },
       formData: formData
     }).on('error', function(err) {
+
       if (!res.headersSent) {
         res.status(500).json({
           error: err
         });
       }
+
       log.captureMessage('Unable to transform the file using the original transformation', {
         extra: {
           error: err
@@ -248,8 +254,10 @@ app.post('/preview', jsonParser, function(req, res) {
       formData['page-size'] = parseInt(req.body.pageSize) || 50;
     }
 
+    var endpoint = req.body.useCache ? endpointGraftwerkCache : endpointGraftwerk;
+
     request.post({
-      url: endpointGraftwerk + '/evaluate/' + type,
+      url: endpoint + '/evaluate/' + type,
       headers: {
         'transfer-encoding': 'chuncked'
       },
@@ -260,6 +268,7 @@ app.post('/preview', jsonParser, function(req, res) {
           error: err
         });
       }
+
       log.captureMessage('Unable to preview the file', {
         extra: {
           error: err
@@ -320,8 +329,10 @@ var executeTransformation = function(req, res, successCallback, showDownloadErro
 
       var dataStreamInfos = getAttachmentInfos(response);
 
+      var endpoint = req.query.useCache ? endpointGraftwerkCache : endpointGraftwerk;
+
       var resultStream = request.post({
-        url: endpointGraftwerk + '/evaluate/' + type,
+        url: endpoint + '/evaluate/' + type,
         headers: {
           'transfer-encoding': 'chuncked',
           Accept: type === 'graft' ? 'application/n-triples' : 'application/csv'
@@ -398,16 +409,18 @@ app.get('/download', function(req, res) {
 
   var successCallback = function(resultStream, response, filename, type) {
 
-    delete response.headers['content-disposition'];
-    delete response.headers['content-type'];
-    delete response.headers.server;
+    if (!req.query.useCache) {
+      delete response.headers['content-disposition'];
+      delete response.headers['content-type'];
+      delete response.headers.server;
 
-    if (type === 'graft') {
-      res.contentType('application/n-triples');
-      res.setHeader('content-disposition', 'attachment; filename=' + filename + '.nt');
-    } else {
-      res.contentType('text/csv');
-      res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
+      if (type === 'graft') {
+        res.contentType('application/n-triples');
+        res.setHeader('content-disposition', 'attachment; filename=' + filename + '.nt');
+      } else {
+        res.contentType('text/csv');
+        res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
+      }
     }
 
     resultStream.pipe(res);
@@ -561,4 +574,5 @@ app.listen(serverPort, function() {
   console.log('Server started on http://localhost:' + serverPort + '/');
   console.log('Ontotext endpoint: ' + endpointOntotext);
   console.log('Graftwerk endpoint: ' + endpointGraftwerk);
+  console.log('Graftwerk cache endpoint: ' + endpointGraftwerkCache);
 });
