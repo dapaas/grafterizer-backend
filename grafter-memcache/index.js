@@ -257,12 +257,8 @@ app.use((req, res, next) => {
 
       // We save the response to the filesystem
       var cacheStream = fs.createWriteStream(cacheLocation);
-      response.pipe(cacheStream);
 
       var cacheStreamLength = 0;
-      response.pipe(lengthStream((length) => {
-        cacheStreamLength = length;
-      }));
 
       // When the filesystem has saved the response, we can mark it as processed
       // and trigger the eventual event listeners
@@ -275,6 +271,10 @@ app.use((req, res, next) => {
           cacheEntry.contentDisposition = response.headers['content-disposition'];
         }
       });
+      
+      response.pipe(lengthStream((length) => {
+        cacheStreamLength = length;
+      })).pipe(cacheStream);
     });
 
     // When something goes wrong
