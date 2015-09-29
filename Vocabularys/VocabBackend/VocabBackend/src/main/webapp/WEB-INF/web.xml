@@ -4,7 +4,7 @@
   
    <listener>
 	<listener-class>
-             rest.StartupListener
+             main.java.rest.StartupListener
         </listener-class>
    </listener>
   
