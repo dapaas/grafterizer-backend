@@ -215,6 +215,13 @@ app.post('/preview', jsonParser, function(req, res) {
 
   var clojure = req.body.clojure;
 
+  if (typeof req.body.clojure !== 'string') {
+    res.status(400).json({
+      error: 'The clojure transformation code is not a string'
+    });
+    return;
+  }
+
   var stream = downloadRaw(req, res);
   if (!stream) return;
   stream.on('response', function(response) {
