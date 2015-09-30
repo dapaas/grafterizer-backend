@@ -99,7 +99,7 @@ var downloadRaw = function(req, res) {
     if (req.body && req.body.distributionUri) {
       distributionUri = req.body.distributionUri;
     } else {
-      res.status(418).json({
+      res.status(400).json({
         error: 'The distribution URI parameter is missing'
       });
       return;
@@ -207,7 +207,7 @@ app.post('/preview', jsonParser, function(req, res) {
   }
 
   if (!req.body || !req.body.clojure) {
-    res.status(418).json({
+    res.status(400).json({
       error: 'The clojure transformation code is missing'
     });
     return;
@@ -296,7 +296,7 @@ var executeTransformation = function(req, res, successCallback, showDownloadErro
   var transformationUri = req.query.transformationUri;
 
   if (!transformationUri) {
-    showDownloadError(418, 'The transformation URI parameter is missing');
+    showDownloadError(400, 'The transformation URI parameter is missing');
     return;
   }
 
@@ -468,7 +468,7 @@ app.get('/save', function(req, res) {
 
     var datasetId = req.headers.datasetId || req.query.datasetId;
     if (!datasetId) {
-      showDownloadError(418, 'The dataset ID parameter is missing');
+      showDownloadError(400, 'The dataset ID parameter is missing');
       return;
     }
 
@@ -534,7 +534,7 @@ app.post('/fillRDFrepo', jsonParser, function(req, res) {
   var repositoryUri = req.body.repositoryUri;
 
   if (!repositoryUri) {
-    res.status(418).json({
+    res.status(400).json({
       error: 'The repositoryUri URI parameter is missing'
     });
     return;
