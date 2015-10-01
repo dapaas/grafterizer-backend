@@ -58,6 +58,9 @@ public class VocabularyDAO {
 	// add new vocabulary
 	public boolean insertVocabulary(String prefix, String namespace,
 			String location, String fileContent) throws Exception {
+		
+		System.out.println("insert Vocabulary");
+		
 		if (prefix.isEmpty() || namespace.isEmpty()) {
 			return false;
 		}
@@ -93,12 +96,12 @@ public class VocabularyDAO {
 
 			datasetVocab.commit();
 			datasetVocab.end();
-			datasetVocab.close();
+
 
 			datasetSearch.commit();
 			// testDataset(datasetSearch);
 			datasetSearch.end();
-			datasetSearch.close();
+
 
 			model.close();
 			searchModel.close();
@@ -113,21 +116,23 @@ public class VocabularyDAO {
 	
 	//get classes of a vocabulary
 	public Boolean getClasses(String name, String namespace, List<String> classList) throws Exception{
-		
+		System.out.println("get class");
 		String key = namespace + "___" + name;
 		
-		Dataset d = getDatasetSearch();
+		Dataset datasetSearch = getDatasetSearch();
 		
-		d.begin(ReadWrite.READ);
+		datasetSearch.begin(ReadWrite.READ);
 		
-		if(!d.containsNamedModel(key))
+		if(!datasetSearch.containsNamedModel(key))
 		{
+			datasetSearch.end();
 			return false;
 		}
 		
-		Model m = d.getNamedModel(key);
+		Model m = datasetSearch.getNamedModel(key);
 		
 		if (m == null){
+			datasetSearch.end();
 			return false;
 		}
 		
@@ -155,29 +160,31 @@ public class VocabularyDAO {
 			qeclass.close();
 		}
 		
-		d.end();
-		d.close();
-		
+		datasetSearch.end();
+	
 		return true;
 	}
 	
 	//get classes of a vocabulary
 	public Boolean getProperties(String name, String namespace, List<String> propertyList) throws Exception{
 
+		System.out.println("get getProperties");
 		String key = namespace + "___" + name;
 
-		Dataset d = getDatasetSearch();
+		Dataset datasetSearch = getDatasetSearch();
 		
-		d.begin(ReadWrite.READ);
+		datasetSearch.begin(ReadWrite.READ);
 		
-		if(!d.containsNamedModel(key))
+		if(!datasetSearch.containsNamedModel(key))
 		{
+			datasetSearch.end();
 			return false;
 		}
 
-		Model m = d.getNamedModel(key);
+		Model m = datasetSearch.getNamedModel(key);
 
 		if (m == null){
+			datasetSearch.end();
 			return false;
 		}
 
@@ -205,8 +212,8 @@ public class VocabularyDAO {
 			qeproperty.close();
 		}
 
-		d.end();
-		d.close();
+		datasetSearch.end();
+
 		return true;
 	}
 	
@@ -215,6 +222,9 @@ public class VocabularyDAO {
 	public Boolean getClassAndPropertyFromVocabulary(String name,
 			String namespace, String location, String fileContent,
 			String islocal, List<String> classlist, List<String> propertylist) {
+		
+		System.out.println("getClassAndPropertyFromVocabulary");
+		
 		Model model = ModelFactory.createDefaultModel();
 
 		if (islocal == "true") {
@@ -351,6 +361,8 @@ public class VocabularyDAO {
 
 	// delete vocabulary based on vocabulary name
 	public boolean deleteVocabulary(String name) throws Exception {
+		
+		System.out.println("deleteVocabulary");
 
 		if (name.isEmpty()) {
 			return false;
@@ -367,7 +379,7 @@ public class VocabularyDAO {
 
 		datasetSearch.commit();
 		datasetSearch.end();
-		datasetSearch.close();
+
 
 		String namespace = name;
 
@@ -383,7 +395,7 @@ public class VocabularyDAO {
 
 		dataset.commit();
 		dataset.end();
-		dataset.close();
+
 
 		return true;
 	}
@@ -391,6 +403,7 @@ public class VocabularyDAO {
 	// update vocabulary with a new uri
 	public boolean updataVocabulary(String name, String namespace,
 			String newPath) throws Exception {
+		System.out.println("updataVocabulary");
 
 		if (name.isEmpty() || newPath.isEmpty() || namespace.isEmpty()) {
 			return false;
@@ -410,7 +423,7 @@ public class VocabularyDAO {
 
 		dataset.commit();
 		dataset.end();
-		dataset.close();
+
 
 		Dataset datasetSearch = getDataset();
 
@@ -426,7 +439,7 @@ public class VocabularyDAO {
 
 		datasetSearch.commit();
 		datasetSearch.end();
-		datasetSearch.close();
+
 
 		return true;
 	}
@@ -434,6 +447,8 @@ public class VocabularyDAO {
 	// search vocabulary based on keyword
 	public Boolean searchVocabulary(String keyword, List<String> classList,
 			List<String> propertyList) throws Exception {
+		
+		System.out.println("searchVocabulary");
 
 		String prefix = "";
 		String name = keyword;
@@ -510,13 +525,15 @@ public class VocabularyDAO {
 
 		// testDataset(dataset);
 		dataset.end();
-		dataset.close();
+
 
 		return true;
 	}
 
 	// get a list of vocabulary name
 	public Map<String, String> getAllVocabularyName() throws Exception {
+		
+		System.out.println("getAllVocabularyName");
 
 		Dataset datasetsearch = getDatasetSearch();
 
@@ -532,7 +549,9 @@ public class VocabularyDAO {
 			datasetsearch.end();
 		}
 		// testDataset(datasetsearch);
-		datasetsearch.close();
+
+		datasetsearch.end();
+
 
 		while (it.hasNext()) {
 			String str = it.next();
@@ -582,7 +601,7 @@ public class VocabularyDAO {
 
 		// testDataset(dataset);
 		dataset.end();
-		dataset.close();
+
 
 		return resultList.iterator();
 	}
@@ -746,44 +765,47 @@ public class VocabularyDAO {
 		
 		datasetSearch.commit();
 		datasetSearch.end();
-		datasetSearch.close();
+
 		return errorLevel;
 	}
 
 	private static Dataset getDataset() throws Exception {
+		System.out.println("getDataset");
 		return TDBFactory.createDataset("VocabDataset");
 	}
+	
+	static Dataset datasetSearch = null;
 
 	// get a dataset with lucene index, lucene index is used for search.
 	private static Dataset getDatasetSearch() throws Exception {
-		
+		System.out.println("getDatasetSearch");
+		if (datasetSearch == null){
+			TextQuery.init();
 
-		TextQuery.init();
+			datasetSearch = TDBFactory.createDataset("VocabDatasetSearch");
 
-		Dataset datasetSearch = TDBFactory.createDataset("VocabDatasetSearch");
+			try {
+				// Define the index mapping
+				EntityDefinition entDef = new EntityDefinition("uri", "text", RDFS.label.asNode());
 
-		// Define the index mapping
-		EntityDefinition entDef = new EntityDefinition("uri", "text",
-				RDFS.label.asNode());
+				// Lucene, index file
+				Directory dir = FSDirectory.open(new File("index-directory"));
 
-		Directory dir = null;
-		try {
-			// Lucene, index file
-			dir = FSDirectory.open(new File("index-directory"));
-		} catch (Exception e) {
-
+				// Join together into a dataset
+				datasetSearch = TextDatasetFactory.createLucene(datasetSearch, dir, entDef, null);
+				
+				
+			} catch (Exception e) {
+				System.out.println("create lucene failed");
+			}
 		}
-
-		// Join together into a dataset
-		datasetSearch = TextDatasetFactory.createLucene(datasetSearch, dir,
-				entDef, null);
-
+		
 		
 		return datasetSearch;
 	}
 
 	static int teststatistic = 0;
-
+	
 	// test code: get all data from dataset
 	private void testDataset(Dataset dataset) {
 		dataset.begin(ReadWrite.READ);
@@ -814,7 +836,9 @@ public class VocabularyDAO {
 			}
 		} finally {
 			qetest.close();
+			dataset.commit();
 			dataset.end();
+
 			logger.info("______________________________" + teststatistic
 					+ " _________________________");
 		}
