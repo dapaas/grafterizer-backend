@@ -375,7 +375,9 @@ var executeTransformation = function(req, res, successCallback, showDownloadErro
       }).on('response', function(response) {
 
         if (!response || response.statusCode !== 200) {
-          var outputError = concat(function(graftwerkOutput) {
+          var outputError = concat({
+            encoding: 'string',
+          }, function(graftwerkOutput) {
             showDownloadError(500, graftwerkOutput);
           });
 
@@ -563,7 +565,8 @@ app.post('/fillRDFrepo', jsonParser, function(req, res) {
         res.status(500).json({error: 'Unable to fill the repository'});
         log.captureMessage('Unable to fill the repository', {
           extra: {
-            error: err
+            error: err,
+            response: response
           }
         });
         return;
