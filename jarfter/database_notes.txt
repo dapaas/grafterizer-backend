@@ -1,0 +1,127 @@
+
+To connect to the database used in MOD_coop:
+
+1) Start a VPN session towards the MiniCloud:
+	Use the unchanged .ovpn file in Documents/keys/miniCloud
+	$ sudo openvpn --config MiniCloud.ovpn 
+
+2.1) Open SQuirreL Client
+	Connect to "jdbc:postgresql://192.168.11.21/5432/dapaas"
+	Username postgres and passwrd <no git>
+2.2) Connect to the data base with postgresql:
+	$ psql postgresql://192.168.11.21:5432/dapaas -U postgres
+
+
+IP address for MiniCloud jarfter machine:
+192.168.11.43
+
+My test table
+-------------
+ < Created by >
+CREATE TABLE havahol (
+h_id text PRIMARY KEY,
+visual_name text NOT NULL,
+file bytea);
+
+ < Insert values by>
+INSERT INTO havahol (h_id, visual_name)
+VALUES ('test_1', 'First test ever');
+ < or >
+INSERT INTO havahol (h_id, visual_name, file)
+VALUES ('test_2', 'with_file_as_well', '123456789');
+
+ < Conditional query by>
+SELECT file FROM havahol WHERE h_id = 'test_2';
+
+```
+
+<endpoint> := http://IP:port/jarfter/webresources
+
+Jarfter Web Services:
+ <xX> POST <endpoint>/jarCreatorStandAlone (jar_creator.py)
+	Send a clojure file to the server and get a .jar in return - no database interaction
+ 
+ <xX> POST <endpoint>/transformStandAlone (standaloneTransformer.py)
+	Send clojure code, input data and output filename to server and get transformed data in return - no database interaction.
+
+ <xX> PUT <endpoint>/jarCreator (storeTransformation.py)
+	Upload clojure code, store .clj + .jar in transformations table - return transformation_uri in json format
+ <xX> GET <endpoint>/jarCreator (getTransformationJar.py)
+	Return executable from transformed->uri in header 'transform_uri'
+ <xX> GET <endpoint>/jarCreator/listEntries (selectTransformations.py)
+	Optional header input is 'transform_uri' - Return json formatted table entries based matching input. If input is null, it selects all entries.
+
+ <xX> PUT <endpoint>/rawData (storeRawData.py)
+	Upload raw data, store it in files table - return files->fileid - Return json fileid
+
+ <xX> POST <endpoint>/transform (uploadDataAndTransform.py)
+	Upload raw data, store it in files table - return transformed data + files->fileid in header 'fileid' - Need transformation_uri as header input to perform a transformation.
+     Discarded POST <endpoint>/transform 
+	Upload json {'transformations_uri': '<uri>', 'files_fileid': '<fileid>'}
+	Behind the scenes: Get executable and raw file from DB and execute.
+	Return transformed data set.
+ <xX> GET <endpoint>/transform (executeTransformationGET.py)
+	Upload headers "transformations_uri" and "files_fileid" and make it a GET
+
+
+`
+
+About Exceptions:
+------------------
+For http status codes, see http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+Standard defined client errors: 400 - 417
+Standard defined server errors: 500 - 505
+
+My errors starts on 450 and 550 respectively.
+Fallback errors:
+ - 550 Unknown server error
+ - 450 Unknown client error
+
+What can go wrong:
+
+ - PostgreSQL related:
+	- Unknown SQLException - e.g. SQL errors - 551 Server Error
+	- Can't connect - vpn problems (server's problem) <-- Same as 553
+			- bad username/pw (client's problem)  <-- 451 (401 SERVER (since we read this from json now)
+			  SQLException: "FATAL: password authentication failed for user "postgres""
+	- Non-existing key - bad db entry reference (client's problem) <-- 452 Bad database query
+	- Invalid database name - The database is not located at the given endpoint <-- 552 Server Error
+	  SQLException: "FATAL: database "dapaasa" does not exist"
+	- Invalid database endpoint - The database is not located at the given hostname / port <-- 553 Server Error
+	  SQLException: "(-1) Unexpected org.postgresql.util.PSQLException with message "Connection refused. Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.""
+	- Can't find driver - ClassNotFoundException <-- 554 Server Error
+	- Not connected - Not connected when you in theory should be <-- 555 Server Error
+	- Duplicated key for database entry <-- 556 Server Error
+
+ - Web service related:
+	- Invalid headers - (client's problem) <-- 456 Invalid headers
+	SHOULD THE PAYLOAD INCLUDE WHICH HEADERS ARE REQUIRED?
+
+
+ - Grafter related:
+	- compilation	- bad clojure code (clinet's or user's problem) <-- 461 Invalid clojure code
+			- unknown compiliation error <-- 564 
+			- other lein errors (server's problem) <-- 561 Lein errors
+	- run time	- bad raw data format (user's/client's problem) <-- 462 Invalid raw data format
+			- bad output format (user's/client's problem) <-- 463 Invalid output format
+				org.openrdf.rio.UnsupportedRDFormatException:
+			- corrupt jar (f.ex. no main, going into REPL) (?) <-- 562 Corrupt jar (how to detect??)
+			- reading stdout and stderr problems <-- 563 IO_PROCESS_OUTPUT
+			- bad csv file (prime elements?) <-- 464 DON'T KNOW HOW TO DETECT...
+			- unknown runtime error (those that are hard to classify) <-- 565 Internal server error
+
+
+ - File system related:
+	- Can't find template folders (server's problem) <-- 566 Internal file system error
+	- Can't write to temporary file (server's problem) <-- 567
+	- Can't find output jar file from tmp <-- 568
+ 	- Can't find clojure file on tmp <-- 569
+	- Can't find raw data file on tmp <-- 570
+	- Can't find file (hard to know which kind) on tmp <-- 571
+	
+
+
+by the way - if I'm interested, I can read a bit more background here:
+https://github.com/Swirrl/grafter (Grafter)
+https://github.com/Swirrl/lein-grafter (Grafter Leiningen plugin)
+
