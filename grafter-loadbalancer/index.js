@@ -71,9 +71,7 @@ var selectTarget = function() {
     currentTargetIndex = 0;
   }
 
-  return graftwerkTargets[currentTargetIndex];
-
-  ++currentTargetIndex;
+  return graftwerkTargets[currentTargetIndex++];
 };
 
 var processRequest = function(req, res) {
