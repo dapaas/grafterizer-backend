@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.lang.Math;
 
 public class ProbabilityFile {
 	static Map<EnumPredict, Double> singleRowProbability = new HashMap<EnumPredict, Double>();
@@ -87,7 +88,7 @@ public class ProbabilityFile {
 			if(d <= 0.0){
 				d = 0.0;
 			}
-			d++;
+			d = Math.log(Math.log(d) + 1);
 			singleRowProbability.put(e, d);
 		}else{
 			singleRowProbability.put(e, 1.0);
@@ -103,7 +104,7 @@ public class ProbabilityFile {
 			if(d <= 0.0){
 				d = 0.0;
 			}
-			d++;
+			d = Math.log(Math.log(d) + 1);
 			multiRowProbability.put(e, d);
 		}else{
 			multiRowProbability.put(e, 1.0);
@@ -118,7 +119,7 @@ public class ProbabilityFile {
 			if(d <= 0.0){
 				d = 0.0;
 			}
-			d++;
+			d = Math.log(Math.log(d) + 1);
 			singleColumnProbability.put(e, d);
 		}else{
 			singleColumnProbability.put(e, 1.0);
@@ -134,7 +135,7 @@ public class ProbabilityFile {
 			if(d <= 0.0){
 				d = 0.0;
 			}
-			d++;
+			d = Math.log(Math.log(d) + 1);
 			multiColumnProbability.put(e, d);
 		}else{
 			multiColumnProbability.put(e, 1.0);

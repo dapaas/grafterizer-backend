@@ -5,6 +5,7 @@ import java.util.List;
 
 import main.java.prediction.EnumPredict;
 import main.java.prediction.EnumType;
+import main.java.prediction.ProbabilityFile;
 import main.java.prediction.Selection;
 
 public class SplitSuggestion extends Suggestion{
@@ -14,14 +15,17 @@ public class SplitSuggestion extends Suggestion{
 		String [] l = strSuggestion.split(" ");
 		switch(predictType){
 		case SingleRowSplitBasic:
-
+			ProbabilityFile.increaseSingleRowProbability(predictType);
 			break;
 		case MultiRowSplitBasic:
-
+			ProbabilityFile.increaseMultiRowProbability(predictType);
 			break;
 		case SingleColumnSplitBasic:
+			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			break;
 		case MultiColumnSplitBasic:
-
+			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			break;
 		default:
 			break;
 		}
@@ -29,7 +33,7 @@ public class SplitSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";

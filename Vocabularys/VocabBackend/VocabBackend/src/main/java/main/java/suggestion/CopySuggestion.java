@@ -18,18 +18,14 @@ public class CopySuggestion extends Suggestion {
 			String column = l[2];
 			ProbabilityFile.increaseSingleColumnProbability(predictType);
 			
-			
 			//return closure code 
-			
 			
 			break;
 		case MultiColumnCopyBasic:
 			column = l[2];
 			ProbabilityFile.increaseMultiColumnProbability(predictType);
 			
-			
 			//return closure code 
-			
 			
 			break;
 		default:
@@ -39,7 +35,7 @@ public class CopySuggestion extends Suggestion {
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";

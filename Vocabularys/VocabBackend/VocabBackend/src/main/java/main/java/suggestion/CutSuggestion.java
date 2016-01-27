@@ -18,14 +18,12 @@ public class CutSuggestion extends Suggestion{
 			String column = l[1];
 			ProbabilityFile.increaseSingleColumnProbability(predictType);
 			
-			
 			//return closure code 
 			
 			break;
 		case MultiColumnCutBasic:
 			column = l[1];
 			ProbabilityFile.increaseMultiColumnProbability(predictType);
-			
 			
 			//return closure code 
 			
@@ -37,7 +35,7 @@ public class CutSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";

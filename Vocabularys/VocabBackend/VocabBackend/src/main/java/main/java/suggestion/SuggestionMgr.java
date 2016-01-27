@@ -79,7 +79,7 @@ public class SuggestionMgr {
 		}
 	}
 	
-	public List<SuggestionItem> getSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	public List<SuggestionItem> getSuggestion(String[] tData, Selection selection, String [] columnhead){
 		
 		return suggestion.generateSuggestion(tData, selection, columnhead);
 	}

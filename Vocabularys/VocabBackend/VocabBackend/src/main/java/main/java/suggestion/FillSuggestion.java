@@ -15,13 +15,23 @@ public class FillSuggestion extends Suggestion{
 		String [] l = strSuggestion.split(" ");
 		switch(predictType){
 		case SingleRowFillEmpty:
+			ProbabilityFile.increaseSingleRowProbability(predictType);
+			break;
 		case SingleRowFillBasic:
+			ProbabilityFile.increaseSingleRowProbability(predictType);
+			break;
 		case SingleRowFillAll:
+			ProbabilityFile.increaseSingleRowProbability(predictType);
+			break;
 		case MultiRowFillBasic:
+			ProbabilityFile.increaseMultiRowProbability(predictType);
+			break;
 		case SingleColumnFillBasic:
+			ProbabilityFile.increaseSingleColumnProbability(predictType);
 			String column = l[1];
 			break;
 		case MultiColumnFillBasic:
+			ProbabilityFile.increaseMultiColumnProbability(predictType);
 			column = l[1];
 			break;
 			
@@ -32,7 +42,7 @@ public class FillSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";
@@ -58,11 +68,11 @@ public class FillSuggestion extends Suggestion{
 			//fill row where column1='***' with value from left
 			int index = 0;
 			while(index < columnhead.length){
-				opStr = "Fill rows where " + columnhead[index] + " = " + tData[selection.getSelectedRow()][index] + " with value from left";
+				opStr = "Fill rows where " + columnhead[index] + " = " + tData[index] + " with value from left";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
-				opStr = "Fill rows where " + columnhead[index] + " = " + tData[selection.getSelectedRow()][index] + " with value from above";
+				opStr = "Fill rows where " + columnhead[index] + " = " + tData[index] + " with value from above";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
-				opStr = "Fill rows where " + columnhead[index] + " = " + tData[selection.getSelectedRow()][index] + " with value from below";
+				opStr = "Fill rows where " + columnhead[index] + " = " + tData[index] + " with value from below";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
 				index++;
 			}

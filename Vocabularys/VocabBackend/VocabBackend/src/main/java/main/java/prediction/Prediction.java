@@ -15,7 +15,14 @@ public class Prediction {
 	public class PredictionProbability {
 		String strOp;
 		Double probability;
+		EnumPredict enumpredict;
 		
+		public EnumPredict getEnumpredict() {
+			return enumpredict;
+		}
+		public void setEnumpredict(EnumPredict enumpredict) {
+			this.enumpredict = enumpredict;
+		}
 		public String getStrOp() {
 			return strOp;
 		}
@@ -34,7 +41,7 @@ public class Prediction {
 
 	Map<EnumType, EnumOp []> opMap = new HashMap<EnumType, EnumOp []>();
 	
-	Prediction(){
+	public Prediction(){
 		EnumOp [] singleRowList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill};
 		opMap.put(EnumType.rowSingle, singleRowList);
 		
@@ -53,23 +60,11 @@ public class Prediction {
 	
 	/*
 	 * input:
-	 * table data, type
-	 * output:
-	 * ranked operation
-	 */
-	List<String> getOperationlist(String[][] tData, EnumType type, String [] columns, int row){
-		List<String> oplist = new ArrayList<String>();
-		
-		return oplist;
-	}
-	
-	/*
-	 * input:
 	 * operation
 	 * output:
 	 * closure code
 	 */
-	String parseOperation(String op, EnumPredict predictType){
+	public String parseOperation(String op, EnumPredict predictType){
 		String [] l = op.split(" ");
 		
 		if(l.length <= 0){
@@ -89,10 +84,10 @@ public class Prediction {
 	 * output:
 	 * operations
 	 */
-	List<PredictionProbability> generateOperations(String[][] tData, Selection selection, String [] columnhead){
-		List<PredictionProbability> oplist = new ArrayList<PredictionProbability>();
-		
+	public List<PredictionProbability> generateOperations(String[] tData, Selection selection, String [] columnhead){
 		EnumOp [] ops = opMap.get(selection.type);
+		
+		suggestionList.clear();
 		
 		for(int i = 0; i < ops.length; i++){
 			SuggestionMgr suggestionMgr = new SuggestionMgr();
@@ -107,16 +102,17 @@ public class Prediction {
 			}
 		}
 		
-		return oplist;
+		return suggestionList;
 	}
 	
-	Boolean AddPrediction(String opstr, EnumPredict e){
+	private Boolean AddPrediction(String opstr, EnumPredict e){
 		Boolean inserted = false;
 		Double probability = 0.0;
 		
 		PredictionProbability p = new PredictionProbability();
 		p.setProbability(probability);
 		p.setStrOp(opstr);
+		p.setEnumpredict(e);
 		
 		probability = ProbabilityFile.getProbability(e);
 		

@@ -19,6 +19,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import main.java.dao.VocabularyDAO;
+import main.java.prediction.EnumPredict;
+import main.java.prediction.EnumType;
+import main.java.prediction.Prediction;
+import main.java.prediction.Selection;
+import main.java.prediction.Prediction.PredictionProbability;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
@@ -375,6 +380,133 @@ public class VocabularyAPI {
 		}
 		
 		returnString = jsonObject.toString();
+		
+		return Response.ok(returnString).build();
+	}
+	
+	@Path("/parse")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response Parse(String data)  throws Exception{
+		Prediction prediction = new Prediction();
+		JSONObject jsonObject = new JSONObject();
+		
+		try{
+			JSONObject partsData = new JSONObject(data);
+			
+			String strPrediction = partsData.getString("prediction");
+			String strType = partsData.getString("type");
+			
+			EnumPredict epredict = EnumPredict.valueOf(strType);
+			
+			String str = prediction.parseOperation(strPrediction, epredict);
+			
+			jsonObject.put("closure", str);
+			
+		}catch(Exception e){
+			
+		}
+		
+		String returnString = jsonObject.toString();
+		
+		return Response.ok(returnString).build();
+	}
+	
+	
+	@Path("/predict")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response GeneratePrediction(String data)  throws Exception{
+		logger.info( "GeneratePrediction: " + data );
+		
+		Prediction prediction = new Prediction();
+		JSONObject jsonObject = new JSONObject();
+		try{
+			JSONObject partsData = new JSONObject(data);
+			
+			int type = partsData.optInt("type"); //rowSingle 1, rowMulti 2, colSingle 3, colMulti 4.
+			Integer selectedRow = partsData.optInt("selectedRow");
+			Integer selectedColumn = partsData.optInt("selectedColumn");
+			JSONArray selectedRows = partsData.getJSONArray("selectedRows");
+			JSONArray selectedColumns = partsData.getJSONArray("selectedColumns");
+			JSONArray columnHead = partsData.getJSONArray("columnHead");
+			JSONArray tableData = partsData.getJSONArray("tableData");
+			
+			if (selectedRows == null) {
+			}
+			Integer[] selectedRowsInt = new Integer[selectedRows.length()];
+			for (int i = 0; i < selectedRows.length(); ++i) {
+				selectedRowsInt[i] = selectedRows.optInt(i);
+			}
+			
+			if (selectedColumns == null) {
+			}
+			Integer[] selectedColumnsInt = new Integer[selectedColumns.length()];
+			for (int i = 0; i < selectedColumns.length(); ++i) {
+				selectedColumnsInt[i] = selectedColumns.optInt(i);
+			}
+			
+			if (columnHead == null) {
+			}
+			String[] columnheadStr = new String[columnHead.length()];
+			for (int i = 0; i < columnHead.length(); ++i) {
+				columnheadStr[i] = columnHead.optString(i);
+			}
+			
+			if (tableData == null) {
+			}
+			String[] tableDataStr = new String[tableData.length()];
+			for (int i = 0; i < tableData.length(); ++i) {
+				tableDataStr[i] = tableData.optString(i);
+			}
+			
+			
+			Selection s = new Selection();
+			EnumType etype = null;
+			switch(type){
+			case 1:
+				etype = EnumType.rowSingle;
+				break;
+			case 2:
+				etype = EnumType.rowMulti;
+				break;
+			case 3:
+				etype = EnumType.colSingle;
+				break;
+			case 4:
+				etype = EnumType.colMulti;
+				break;
+			default:
+				etype = null;
+			}
+			
+			s.setType(etype);
+			s.setSelectedRow(selectedRow);
+			s.setSelectedColumn(selectedColumn);
+			s.setSelectedRows(selectedRowsInt);
+			s.setSelectedColumns(selectedColumnsInt);
+			
+			JSONArray array = new JSONArray();
+			Iterator<PredictionProbability> it = prediction.generateOperations(tableDataStr, s, columnheadStr).iterator();
+			while(it.hasNext()){
+				PredictionProbability p = it.next();
+				
+				JSONObject object = new JSONObject();
+				object.put("value", p.getStrOp());
+				object.put("type", p.getEnumpredict());
+				
+				array.put(object);
+			}
+			
+			jsonObject.put("predictions", array);
+			
+		}catch(Exception e){
+			
+		}
+		
+		String returnString = jsonObject.toString();
 		
 		return Response.ok(returnString).build();
 	}

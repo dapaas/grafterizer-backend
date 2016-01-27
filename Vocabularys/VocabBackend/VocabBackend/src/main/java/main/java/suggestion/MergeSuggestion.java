@@ -16,14 +16,18 @@ public class MergeSuggestion extends Suggestion{
 		switch(predictType){
 		case SingleRowMergeBasic:
 			String column = l[2];
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseSingleRowProbability(predictType);
 			break;
 		case MultiRowMergeBasic:
 			column = l[2];
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseMultiRowProbability(predictType);
 			break;
 		case SingleColumnMergeBasic:
+			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			break;
 		case MultiColumnMergeBasic:
+			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			break;
 		default:
 			break;
 		}
@@ -31,7 +35,7 @@ public class MergeSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";

@@ -27,8 +27,10 @@ public class DeleteSuggestion extends Suggestion{
 			ProbabilityFile.increaseMultiRowProbability(predictType);
 			break;
 		case SingleColumnDeleteBasic:
+			ProbabilityFile.increaseSingleColumnProbability(predictType);
 			column = l[1];
 		case MultiColumnDeleteBasic:
+			ProbabilityFile.increaseMultiColumnProbability(predictType);
 			column = l[1];
 		default:
 			break;
@@ -37,7 +39,7 @@ public class DeleteSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";
@@ -46,13 +48,13 @@ public class DeleteSuggestion extends Suggestion{
 			
 			//delete empty rows
 			if(isRowEmpty(tData, selection.getSelectedRow())){
-				opStr = "Delete empty rows";
+				opStr = "Delete empty rows ";
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteEmpty);
 			}
 			
 			//delete rows where column1 = "data in column1"
 			while(index < columnhead.length){
-				opStr = "Delete rows where " + columnhead[index] + " = " + tData[selection.getSelectedRow()][index];
+				opStr = "Delete rows where " + columnhead[index] + " = " + tData[index];
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteBasic);
 				index++;
 			}
@@ -61,7 +63,7 @@ public class DeleteSuggestion extends Suggestion{
 		//delete rows 1,2
 		if(selection.getType() == EnumType.rowMulti){
 			
-			opStr = "Delete rows" + getSelectedRows(selection);
+			opStr = "Delete rows " + getSelectedRows(selection);
 			AddItem(oplist, opStr, EnumPredict.MultiRowDeleteBasic);
 		}
 		
@@ -74,7 +76,7 @@ public class DeleteSuggestion extends Suggestion{
 		//delete column1,column2
 		if(selection.getType() == EnumType.colMulti){
 			
-			opStr = "Delete" + getSelectedColumns(selection, columnhead);
+			opStr = "Delete " + getSelectedColumns(selection, columnhead);
 			AddItem(oplist, opStr, EnumPredict.MultiColumnDeleteBasic);
 		}
 		

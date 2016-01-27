@@ -1,6 +1,5 @@
 package main.java.suggestion;
 
-import java.util.Iterator;
 import java.util.List;
 
 import main.java.prediction.EnumPredict;
@@ -15,7 +14,7 @@ public abstract class Suggestion {
 		public EnumPredict predictType;
 	}
 	
-	abstract List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead);
+	abstract List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead);
 	
 	abstract String parseSuggestion(String strSuggestion, EnumPredict predictType);
 	
@@ -31,13 +30,20 @@ public abstract class Suggestion {
 			return selection.getSelectedRow().toString();
 		}
 		
-		List<Integer> listrows = selection.getSelectedRows();
-		Iterator<Integer> it = listrows.iterator();
+		Integer[] listrows = selection.getSelectedRows();
+		
+		if(listrows.length <= 0){
+			return "";
+		}
+		
 		String rows = "";
 		
-		while(it.hasNext()){
-			rows += it.next();
+		for(int i = 0; i < listrows.length - 1; i++){
+			rows += listrows[i];
+			rows += ",";
 		}
+		
+		rows += listrows[listrows.length - 1];
 		
 		return rows;
 	}
@@ -47,20 +53,27 @@ public abstract class Suggestion {
 			return selection.getSelectedColumn().toString();
 		}
 		
-		List<Integer> listcolumns = selection.getSelectedColumns();
-		Iterator<Integer> it = listcolumns.iterator();
+		Integer [] listcolumns = selection.getSelectedColumns();
+		
+		if(listcolumns.length <= 0){
+			return "";
+		}
+		
 		String columns = "";
 		
-		while(it.hasNext()){
-			columns += columnhead[it.next()];
+		for(int i = 0; i < listcolumns.length - 1; i++){
+			columns += listcolumns[i];
+			columns += ",";
 		}
+		
+		columns += listcolumns[listcolumns.length - 1];
 		
 		return columns;
 	}
 	
-	Boolean isRowEmpty(String[][] tData, int row){
+	Boolean isRowEmpty(String[] tData, int row){
 		
-		String [] strlist = tData[row];
+		String [] strlist = tData;
 		
 		for(int i = 0; i < strlist.length; i++){
 			if(!strlist[i].isEmpty()){

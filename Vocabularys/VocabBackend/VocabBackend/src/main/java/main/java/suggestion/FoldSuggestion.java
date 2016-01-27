@@ -15,15 +15,23 @@ public class FoldSuggestion extends Suggestion{
 		String [] l = strSuggestion.split(" ");
 		switch(predictType){
 		case SingleRowFoldUsingRow:
-
+			ProbabilityFile.increaseSingleRowProbability(predictType);
 			break;
 		case SingleRowFoldUsingColumn:
-
+			ProbabilityFile.increaseSingleRowProbability(predictType);
 			break;
 		case MultiRowFoldUsingRow:
+			ProbabilityFile.increaseMultiRowProbability(predictType);
+			break;
 		case MultiRowFoldUsingColumn:
+			ProbabilityFile.increaseMultiRowProbability(predictType);
+			break;
 		case SingleColumnFoldBasic:
+			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			break;
 		case MultiColumnFoldBasic:
+			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			break;
 		default:
 			break;
 		}
@@ -31,7 +39,7 @@ public class FoldSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[][] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";
@@ -41,7 +49,7 @@ public class FoldSuggestion extends Suggestion{
 			
 			int index = 0;
 			while(index < columnhead.length){
-				opStr = "Fold " + columnhead[index] + " using " + selection.getSelectedRow() + "as a key";
+				opStr = "Fold " + columnhead[index] + " using " + selection.getSelectedRow() + " as a key";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFoldUsingColumn);
 				index++;
 			}
@@ -52,31 +60,31 @@ public class FoldSuggestion extends Suggestion{
 			AddItem(oplist, opStr, EnumPredict.MultiRowFoldUsingRow);
 			int index = 0;
 			while(index < columnhead.length){
-				opStr = "Fold " + columnhead[index] + " using " + getSelectedRows(selection) + "as a key";
+				opStr = "Fold " + columnhead[index] + " using " + getSelectedRows(selection) + " as a key";
 				AddItem(oplist, opStr, EnumPredict.MultiRowFoldUsingColumn);
 				index++;
 			}
 		}
 		
 		if(selection.getType() == EnumType.colSingle){
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + "using header as a key";
+			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using header as a key";
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFoldBasic);
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + "using header 1 as a key";
+			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using header 1 as a key";
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFoldBasic);
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + "using header 1,2 as a key";
+			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using header 1,2 as a key";
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFoldBasic);
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + "using header 1,2,3 as a key";
+			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using header 1,2,3 as a key";
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFoldBasic);
 		}
 		
 		if(selection.getType() == EnumType.colMulti){
-			opStr = "Fold " + getSelectedColumns(selection, columnhead) + "using header as a key";
+			opStr = "Fold " + getSelectedColumns(selection, columnhead) + " using header as a key";
 			AddItem(oplist, opStr, EnumPredict.MultiColumnFoldBasic);
-			opStr = "Fold " + getSelectedColumns(selection, columnhead) + "using header 1 as a key";
+			opStr = "Fold " + getSelectedColumns(selection, columnhead) + " using header 1 as a key";
 			AddItem(oplist, opStr, EnumPredict.MultiColumnFoldBasic);
-			opStr = "Fold " + getSelectedColumns(selection, columnhead) + "using header 1,2 as a key";
+			opStr = "Fold " + getSelectedColumns(selection, columnhead) + " using header 1,2 as a key";
 			AddItem(oplist, opStr, EnumPredict.MultiColumnFoldBasic);
-			opStr = "Fold " + getSelectedColumns(selection, columnhead) + "using header 1,2,3 as a key";
+			opStr = "Fold " + getSelectedColumns(selection, columnhead) + " using header 1,2,3 as a key";
 			AddItem(oplist, opStr, EnumPredict.MultiColumnFoldBasic);
 		}
 		

@@ -7,8 +7,8 @@ public class Selection {
 	EnumType type;
 	Integer selectedRow = 0;
 	Integer selectedColumn = 0;
-	List<Integer> selectedRows = new ArrayList<Integer>();
-	List<Integer> selectedColumns = new ArrayList<Integer>();
+	Integer[] selectedRows = {};
+	Integer[] selectedColumns = {};
 	String selectedText;
 	Integer TextcorX = 0;
 	Integer TextcorY = 0;
@@ -31,16 +31,16 @@ public class Selection {
 	public void setSelectedColumn(Integer column) {
 		this.selectedRow = column;
 	}
-	public List<Integer> getSelectedRows() {
+	public Integer[] getSelectedRows() {
 		return selectedRows;
 	}
-	public void setSelectedRows(List<Integer> selectedRows) {
+	public void setSelectedRows(Integer[] selectedRows) {
 		this.selectedRows = selectedRows;
 	}
-	public List<Integer> getSelectedColumns() {
+	public Integer[] getSelectedColumns() {
 		return selectedColumns;
 	}
-	public void setSelectedColumns(List<Integer> selectedColumns) {
+	public void setSelectedColumns(Integer[] selectedColumns) {
 		this.selectedColumns = selectedColumns;
 	}
 	public String getSelectedText() {
