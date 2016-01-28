@@ -431,8 +431,10 @@ public class VocabularyAPI {
 			Integer selectedColumn = partsData.optInt("selectedColumn");
 			JSONArray selectedRows = partsData.getJSONArray("selectedRows");
 			JSONArray selectedColumns = partsData.getJSONArray("selectedColumns");
+			
 			JSONArray columnHead = partsData.getJSONArray("columnHead");
-			JSONArray tableData = partsData.getJSONArray("tableData");
+			JSONArray selectedRowData = partsData.getJSONArray("selectedRowData");
+			JSONArray selectedColumnData = partsData.getJSONArray("selectedColumnData");
 			
 			if (selectedRows == null) {
 			}
@@ -455,11 +457,18 @@ public class VocabularyAPI {
 				columnheadStr[i] = columnHead.optString(i);
 			}
 			
-			if (tableData == null) {
+			if (selectedRowData == null) {
 			}
-			String[] tableDataStr = new String[tableData.length()];
-			for (int i = 0; i < tableData.length(); ++i) {
-				tableDataStr[i] = tableData.optString(i);
+			String[] selectedRowDataStr = new String[selectedRowData.length()];
+			for (int i = 0; i < selectedRowData.length(); ++i) {
+				selectedRowDataStr[i] = selectedRowData.optString(i);
+			}
+			
+			if (selectedColumnData == null) {
+			}
+			String[] selectedColumnDataStr = new String[selectedColumnData.length()];
+			for (int i = 0; i < selectedColumnData.length(); ++i) {
+				selectedColumnDataStr[i] = selectedColumnData.optString(i);
 			}
 			
 			
@@ -489,7 +498,7 @@ public class VocabularyAPI {
 			s.setSelectedColumns(selectedColumnsInt);
 			
 			JSONArray array = new JSONArray();
-			Iterator<PredictionProbability> it = prediction.generateOperations(tableDataStr, s, columnheadStr).iterator();
+			Iterator<PredictionProbability> it = prediction.generateOperations(selectedRowDataStr, selectedColumnDataStr, s, columnheadStr).iterator();
 			while(it.hasNext()){
 				PredictionProbability p = it.next();
 				

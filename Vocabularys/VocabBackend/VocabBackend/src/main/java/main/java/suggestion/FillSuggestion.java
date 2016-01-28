@@ -42,13 +42,13 @@ public class FillSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";
 		if(selection.getType() == EnumType.rowSingle){
 			//fill empty rows with value from ...
-			if(isRowEmpty(tData, selection.getSelectedRow())){
+			if(isRowEmpty(selectedRowData, selection.getSelectedRow())){
 				opStr = "Fill empty rows with value from left";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillEmpty);
 				opStr = "Fill empty rows with value from below";	
@@ -68,11 +68,11 @@ public class FillSuggestion extends Suggestion{
 			//fill row where column1='***' with value from left
 			int index = 0;
 			while(index < columnhead.length){
-				opStr = "Fill rows where " + columnhead[index] + " = " + tData[index] + " with value from left";
+				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from left";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
-				opStr = "Fill rows where " + columnhead[index] + " = " + tData[index] + " with value from above";
+				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from above";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
-				opStr = "Fill rows where " + columnhead[index] + " = " + tData[index] + " with value from below";
+				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from below";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
 				index++;
 			}

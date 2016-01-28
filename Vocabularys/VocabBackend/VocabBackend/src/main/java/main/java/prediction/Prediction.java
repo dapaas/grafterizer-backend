@@ -84,7 +84,7 @@ public class Prediction {
 	 * output:
 	 * operations
 	 */
-	public List<PredictionProbability> generateOperations(String[] tData, Selection selection, String [] columnhead){
+	public List<PredictionProbability> generateOperations(String[] selectedRowData, String [] selectedColumnData, Selection selection, String [] columnhead){
 		EnumOp [] ops = opMap.get(selection.type);
 		
 		suggestionList.clear();
@@ -92,7 +92,7 @@ public class Prediction {
 		for(int i = 0; i < ops.length; i++){
 			SuggestionMgr suggestionMgr = new SuggestionMgr();
 			suggestionMgr.setSuggestion(ops[i]);
-			List<SuggestionItem> l = suggestionMgr.getSuggestion(tData, selection, columnhead);
+			List<SuggestionItem> l = suggestionMgr.getSuggestion(selectedRowData, selectedColumnData, selection, columnhead);
 			
 			Iterator<SuggestionItem> it = l.iterator();
 			

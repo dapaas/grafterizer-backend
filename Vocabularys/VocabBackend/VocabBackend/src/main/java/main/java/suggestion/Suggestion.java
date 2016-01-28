@@ -14,7 +14,7 @@ public abstract class Suggestion {
 		public EnumPredict predictType;
 	}
 	
-	abstract List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead);
+	abstract List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead);
 	
 	abstract String parseSuggestion(String strSuggestion, EnumPredict predictType);
 	

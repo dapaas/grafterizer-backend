@@ -10,6 +10,7 @@ public enum EnumPredict {
 	SingleRowSplitBasic,
 	MultiRowSplitBasic,
 	SingleColumnSplitBasic,
+	SingleColumnSplitCommenWord,
 	MultiColumnSplitBasic,
 	
 	SingleRowDeleteEmpty,   //delete empty rows

@@ -79,9 +79,9 @@ public class SuggestionMgr {
 		}
 	}
 	
-	public List<SuggestionItem> getSuggestion(String[] tData, Selection selection, String [] columnhead){
+	public List<SuggestionItem> getSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){
 		
-		return suggestion.generateSuggestion(tData, selection, columnhead);
+		return suggestion.generateSuggestion(selectedRowData, selectedColumnData, selection, columnhead);
 	}
 	
 	public String parseSuggestion(String strSuggestion, EnumPredict predictType){

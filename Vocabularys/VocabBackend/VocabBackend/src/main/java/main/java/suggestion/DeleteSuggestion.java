@@ -39,7 +39,7 @@ public class DeleteSuggestion extends Suggestion{
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";
@@ -47,14 +47,14 @@ public class DeleteSuggestion extends Suggestion{
 			int index = 0;
 			
 			//delete empty rows
-			if(isRowEmpty(tData, selection.getSelectedRow())){
+			if(isRowEmpty(selectedRowData, selection.getSelectedRow())){
 				opStr = "Delete empty rows ";
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteEmpty);
 			}
 			
 			//delete rows where column1 = "data in column1"
 			while(index < columnhead.length){
-				opStr = "Delete rows where " + columnhead[index] + " = " + tData[index];
+				opStr = "Delete rows where " + columnhead[index] + " = " + selectedRowData[index];
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteBasic);
 				index++;
 			}

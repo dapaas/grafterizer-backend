@@ -35,7 +35,7 @@ public class CopySuggestion extends Suggestion {
 	}
 	
 	@Override
-	List<SuggestionItem> generateSuggestion(String[] tData, Selection selection, String [] columnhead){
+	List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		
 		String opStr = "";
