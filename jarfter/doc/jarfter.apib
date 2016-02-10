@@ -1,0 +1,448 @@
+
+
+# Jarfter Web Service API
+
+# Group Usage
+
+### Endpoint
+
+Currently only deployed behind a firewall and a proxy...
+
+The paths are based on the home directory of a deployment. The Jarfter services are tested on GlassFish4.1, and when deployed as 'jarfter.war' their endpoint is on the following form:
+```
+http://ip:port/jarfter/webresources/
+```
+
+
+### Parameters
+
+Parameters are headers unless otherwise stated, meaning they are sent as HTTP headers.
+
+### Mimetype and files
+
+There are four types of files in these web services: 
+ + Clojure source code should be of type `text/txt`, and have to be on the same form as the example shown below.
+ + CSV files are input files that will be transformed and should be of the type `text/txt`. CSV files can also be generated as output.
+ + Transformed data are files transformed by the clojure code, and are given solely as responses. Given as type `text/txt`.
+ + Jar files are executable versions of clojure code, they all take a CSV file as input and output transformed data in the rdf, n3, nt, ttl or csv format. The jar files will be of the type `application/octet-stream`.
+
+# Group Clojure source code
+
+The Clojure source code needs to be formatted with respect to a template in order to be correctly compiled in a leiningen Grafter project. 
+
+The following source code shows an example made from Grafterizer, with template code on top and bottom and automaticly generated code in the middle.
+
+## CSV to RDF
+
+The following source code shows the template required for Grafterizer for mappings from CSV to RDF. The generated source code should be placed as indicated in the template
+
+
+```
+(ns grafterizer.transformation
+  (:require
+   [grafter.rdf :refer [s add prefixer]]
+   [grafter.tabular :refer :all]
+   [grafter.rdf.io :as ses]
+   [grafter.rdf.templater :refer [graph]]
+   [grafter.tabular.common :refer [read-dataset*]]
+   [grafter.vocabularies.rdf :refer :all]
+   [grafter.vocabularies.foaf :refer :all]
+   [grafter.rdf.formats :refer :all]
+   [clojure.string :refer [trim]]
+   )
+)
+
+
+;; <generated source code>
+
+(defn import-data
+  [quads-seq destination]
+  (add (ses/rdf-serializer destination) quads-seq))
+
+(defn my-transformation [dataset output]
+  (import-data 
+    (make-graph (my-pipe dataset))
+  output)
+)
+
+```
+
+
+## CSV to CSV
+
+For mappings from CSV to CSV, the template is slightly different, and is as follows:
+```
+(ns sintef-jarfter-template.core
+  (:require
+   [grafter.rdf :refer [s add prefixer]]
+   [grafter.tabular :refer :all]
+   [grafter.rdf.io :as ses]
+   [grafter.rdf.templater :refer [graph]]
+   [grafter.tabular.common :refer [read-dataset*]]
+   [grafter.vocabularies.rdf :refer :all]
+   [grafter.vocabularies.foaf :refer :all]
+   [grafter.rdf.formats :refer :all]
+   [clojure.string :refer [trim trim-newline triml trimr upper-case lower-case capitalize]]
+   )
+   (:gen-class)
+)
+
+;; <generated source code> - not updated with secure jarfter!
+
+
+(defn import-data
+  [pipe-result destination]
+  (write-dataset destination pipe-result)
+)
+
+(defn -main [& [path output]]
+  (when-not (and path output)
+    (println "Usage: lein run <input-file.csv> <output-file.csv>")
+    (System/exit 0))
+
+  
+  (import-data 
+    (my-pipe (read-dataset path))
+  output)
+
+  (println path "=>" output)
+)
+```
+
+## CSV to RDF as web service
+
+Input for generating a [war file](#jarfter-api-without-database-compiler-service-for-generating-war-file-post) should be on the format below. The result source code will generate a web service that takes CSV as input and gives RDF as output.
+
+```
+(ns warfter-ws.core
+  (:require
+   [grafter.rdf :refer [s add prefixer]]
+   [grafter.tabular :refer :all]
+   [grafter.rdf.io :as ses]
+   [grafter.rdf.templater :refer [graph]]
+   [grafter.tabular.common :refer [read-dataset*]]
+   [grafter.vocabularies.rdf :refer :all]
+   [grafter.vocabularies.foaf :refer :all]
+   [grafter.rdf.formats :refer :all]
+   [clojure.string :refer [trim]]
+   )
+   (:gen-class)
+)
+
+;; <generated source code> - not updated with secure jarfter!
+
+(defn import-data
+  [quads-seq destination ]
+  (add (ses/rdf-serializer destination) quads-seq))
+
+(defn warfterTransformer [& [path output]]
+  (when-not (and path output)
+    (println "Usage: lein run <input-file.csv> <output-file.(nt|rdf|n3|ttl)>")
+    (str "Something went wrong... I don't know why!\n"))
+  
+  (import-data
+    (make-graph (my-pipe (read-datasets path :format :csv)))
+  output)
+)
+
+(defn streamWarfterTransformer [& [instream outfile]]
+  (when-not (and instream outfile)
+    (println "Usage: (streamGrafterTransformer instream output)")
+  )
+  (import-data
+    (make-graph (my-pipe (read-dataset instream :format :csv)))
+  outfile)
+)
+```
+
+
+
+
+# Group Jarfter API without database
+
+## Compiler service without database interaction [/jarCreatorStandAlone]
+
+### Compile jar [POST]
+
+Server side pure compiler service.
+
+Takes Clojure source code as form input 'clojure', and compiles a grafter leiningen project based on the Clojure file on the server. The response will consist of the executable JAR as an attachement.
+
+
++ Parameters
+
++ Request (application/x-www-form-urlencoded)
+  + Body
+
+    {
+	'clojure': <clojure source code>
+    }
+
++ Response (application/octet-stream)
+
+  + Headers
+    Content-Disposition: attachment; filename=transformation.jar
+
+  + Body
+  <jar executable>
+
+
+## Transformer service without database interaction [/transformStandAlone]
+
+### Transform dataset [POST]
+
+Server side compile and transform service, without interaction with the database.
+
+Takes both Clojure code and a dataset in CSV format as input, as well as a output file name. The output filename should have one of the extensions {nt|rdf|n3|ttl|csv}, as the extension controls the output format of the transformation. The output file is sent to the user in the response.
+
+Internally, this service first compiles the Clojure code to an executable JAR file, and then runs this JAR with the CSV and output filename as arguments.
+
++ Parameters
+    
+    + clojure: (text/txt) 
+    Form parameter! Clojure source code.
+    + csv: (text/txt)
+    Form parameter! Dataset in CSV format
+    + transformed_filename: (text/txt)
+    Form parameter! Output filename. Should have extension as {nt|rdf|n3|ttl|csv}.
+
++ Request (application/x-www-form-urlencoded)
+  + Body
+
+  {
+	'clojure': <clojure source code>,
+	'csv': <csv dataset>
+	'transformed_filename': <output.rdf>
+  }
+
++ Response (text/txt)
+
+  + Headers
+    Content-Disposition: attachment; filename=<output.rdf>
+
+  + Body
+  <rdf transformed data>
+     
+
+
+## Compiler service for generating war-file [/warfter]
+
+### Compile war [POST]
+Server side pure compiler service.
+
+Takes Clojure source code as form input 'clojure', and compiles a grafter leiningen project based on the Clojure file on the server. The response will consist of WAR which can be deployed on a server, as attachement.
+
+The API of the returned war in the [Warfter section](#warfter-api).
+
+
++ Parameters
+
++ Request (application/x-www-form-urlencoded)
+  + Body
+
+    {
+	'clojure': <clojure source code>
+    }
+
++ Response (application/octet-stream)
+
+  + Headers
+    Content-Disposition: attachment; filename=warfter.war
+
+  + Body
+  <war executable>
+
+
+
+
+
+
+# Group Jarfter API with database
+
+## Store transformations [/jarCreator]
+
+### Compile and store [PUT]
+
+Takes clojure source code as input, compiles it to an executable jar and stores both the source code and the executable in the database.
+
++ Parameters
+  + transformations_name: (text)
+     name of the transformation. Should have .clj ending.
+  + transformations_metadata: (optional, text) 
+    Descriptive text to be stored next to the transformation
+  
++ Request (text/txt; charset=utf-8)
+  + Headers
+    transformations_name: my_transformation.clj
+    transformations_metadata: Descriptive text
+  
+  + Body
+
+  <clojure source code>
+
++ Response (application/json)
+
+  {
+	"transformations_uri" : "<transformation uri>"
+  }
+  
+
+
+### Download executable [GET]
+
+Downloads an executable jar from the transformation table in the database, based on the transformation URI.
+
++ Parameters
+  + transformations_uri: (text) 
+    URI associated with a transformation in the database table transformations.
+  
++ Request 
+  + Headers
+    transform_uri: <transformation uri>
+
++ Response (application/octet-stream)
+  <Content of jar file>
+
+
+### List transformations [GET /jarCreator/listEntries]
+
+Lists the transformations stored in the database table transformations. The result does not include the executable jar file(s).
+
++ Parameters
+  + transform_uri: (optional, text)
+    List information on a specific transformation instead of all of them.
+
++ Request
+  + Headers
+    transform_uri: <transformation uri>
+
++ Response (application/json)
+
+  {
+	"transformations" : [
+		{
+			"clojure" : "<Clojure source code>",
+			"metadata" : "Descriptive text",
+			"name" : "my_transformation.clj",
+			"uri" : "<transformations_uri"
+		},
+		...		
+	]
+  }
+
+
+## CSV files [/rawData]
+
+### Store CSV [PUT]
+
+Uploads a dataset of comma separeted values (CSV) and stores it in the database table files. 
+
+Response body includes the uri for the dataset.
+
++ Parameters
+  + files_filename: (text)
+    File name to be stored with the CSV dataset in the files table in the database.
+   
++ Request (text/txt; charset=utf-8)
+  + Headers
+    files_filename : dataset.csv
+
+  + Body
+
+  name, sex, age,
+  Bob, m, 34,
+  Alice, f, 27
+
++ Response (application/json)
+
+  {
+	"fileid" : "<file id>"
+  }
+
+
+
+
+## Transform data [/transform]
+
+### Transform from database [GET]
+
+Executes a transform associated with header parameter `transformations_uri` on the dataset associated with the header parameter `files_fileid` into the format spesified by the extention in the file name found in the header parameter `transformed_filename`.
+
++ Parameters
+  + transformations_uri: (text) 
+    URI associated with a transformation in the database table transformations.
+  + files_fileid: (text)
+    URI associated with a CSV file in the database table files.
+  + transformed_filename: (text)
+    The name of the transformed dataset. The important is the file extension, as the executable is able to transform the data to different formats. Allowed formates (nt|rdf|n3|ttl|csv).
+
++ Request 
+  + Headers
+    transformations_uri: <transformation uri>
+    files_fileid: <file id>
+    transformed_filename: output_file.(nt|rdf|n3|ttl|csv)
+
++ Response (text/txt)
+  
+  <Transformed data set>
+  
+
+### Upload and transform [POST]
+
+
+Executes a transform associated with header parameter `transformations_uri` on the CSV dataset sent in the request into the format spesified by the extention in the file name found in the header parameter `transformed_filename`.
+
+The uploaded CSV dataset is stored in the 'files' table in the database.
+
++ Parameters
+  + transformations_uri: (text) 
+    URI associated with a transformation in the database table transformations.
+  + files_filename: (text)
+    File name to be stored with the CSV dataset in the files table in the database.
+  + transformed_filename: (text)
+    The name of the transformed dataset. The important is the file extension, as the executable is able to transform the data to different formats. Allowed formates (nt|rdf|n3|ttl|csv).
+
++ Request (text/txt; charset=utf-8) 
+  + Headers
+    transformations_uri: <transformation uri>
+    files_filename: input_file.csv
+    transformed_filename: output_file.(nt|rdf|n3|ttl|csv)
+
+  + Body
+
+  name, sex, age,
+  Bob, m, 34,
+  Alice, f, 27
+
++ Response (text/txt)
+  
+  <Transformed data set>
+
+
+
+
+	 
+# Group Warfter API
+
+The Warfter web service is obtained from [Jarfter's warfter web service](#jarfter-api-without-database-compiler-service-for-generating-war-file-post), and there are therefore no official endpoint for Warfter.
+
+Warfter should be deployed by the user, and the endpoint would be thereafter.
+
+Warfter is tested and confirmed to work when deployed to GlassFish4.1, Jetty-9 and Tomcat-7.
+
+## Transform CSV to RDF [/streamTransform]
+
+### Transform CSV to RDF [POST]
+
+Web  service for transforming CSV data to RDF data based on the transformation that was given as input to the warfter web service.
+
++ Request (text/txt)
+  + Body
+  
+  name, sex, age,
+  Bob, m, 34,
+  Alice, f, 27
+
++ Response (text/txt)
+
+  <Transformed data set>

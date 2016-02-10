@@ -1,8 +1,8 @@
-FROM dockerfile/java:oracle-java8
+FROM java:8
 
-COPY ./graftwerk.jar $HOME/graftwerk.jar
-COPY ./java.policy $HOME/.java.policy
+COPY ./graftwerk.jar /usr/local/var/graftwerk.jar
+COPY ./java.policy /usr/local/var/.java.policy
 
-EXPOSE 3000
+EXPOSE 8080
 
-CMD java -server -jar ~/graftwerk.jar
+CMD java -server -jar /usr/local/var/graftwerk.jar

@@ -1,0 +1,5 @@
+{
+    "db_endpoint" : "<enter endpoint>",
+    "db_username" : "<enter username>",
+    "db_password" : "<enter password>"
+}

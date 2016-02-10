@@ -1,0 +1,19 @@
+In order to do the post example with a request body consisting of a csv (comma separeted values), use the following curl call:
+
+curl -X POST --data-binary @../../sintef-jarfter-template/data/example-data.csv -H "Content-type: text/txt" http://52.17.36.53:8080/grafter-ws/execTransform
+
+The --data-binary makes sure that the new lines are preserved, as --data/-d just ignores them and makes the request useless.
+
+
+
+Services that is confirmed to work:
+
+	/streamTransform (POST) - Hardcoded rdf in the Clojure source code.
+
+
+Secure compilation:
+	Inside tmp/id/ folder:
+		1) copy template war
+		2) mkdir WEB-INF/classes/warfter_ws
+		3) cp input.clj into WEB-INF/classes/warfter_ws/core.clj
+		4) zip -u warfter.war WEB-INF/classes/warfter_ws/core.clj
