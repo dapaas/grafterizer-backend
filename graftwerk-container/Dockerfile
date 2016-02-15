@@ -5,4 +5,4 @@ COPY ./java.policy /usr/local/var/.java.policy
 
 EXPOSE 8080
 
-CMD java -server -jar /usr/local/var/graftwerk.jar
+CMD java -jar -Djava.security.policy=/usr/local/var/.java.policy /usr/local/var/graftwerk.jar
