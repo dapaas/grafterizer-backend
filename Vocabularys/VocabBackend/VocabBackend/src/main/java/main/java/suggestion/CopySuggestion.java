@@ -16,14 +16,14 @@ public class CopySuggestion extends Suggestion {
 		switch(predictType){
 		case SingleColumnCopyBasic:
 			String column = l[2];
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			
 			//return closure code 
 			
 			break;
 		case MultiColumnCopyBasic:
 			column = l[2];
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			
 			//return closure code 
 			

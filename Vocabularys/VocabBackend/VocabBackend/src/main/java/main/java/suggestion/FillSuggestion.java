@@ -15,23 +15,23 @@ public class FillSuggestion extends Suggestion{
 		String [] l = strSuggestion.split(" ");
 		switch(predictType){
 		case SingleRowFillEmpty:
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleRowFillBasic:
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleRowFillAll:
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiRowFillBasic:
-			ProbabilityFile.increaseMultiRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleColumnFillBasic:
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			String column = l[1];
 			break;
 		case MultiColumnFillBasic:
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			column = l[1];
 			break;
 			

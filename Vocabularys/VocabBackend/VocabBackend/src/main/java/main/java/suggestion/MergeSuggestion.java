@@ -16,17 +16,17 @@ public class MergeSuggestion extends Suggestion{
 		switch(predictType){
 		case SingleRowMergeBasic:
 			String column = l[2];
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiRowMergeBasic:
 			column = l[2];
-			ProbabilityFile.increaseMultiRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleColumnMergeBasic:
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiColumnMergeBasic:
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		default:
 			break;

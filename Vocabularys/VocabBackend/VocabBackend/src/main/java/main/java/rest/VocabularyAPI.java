@@ -412,112 +412,158 @@ public class VocabularyAPI {
 		
 		return Response.ok(returnString).build();
 	}
-	
-	
-	@Path("/predict")
+	/*
+	{
+		"selectedRow" : "1",
+		"header" : ["id", "name", "address"],
+		"data" : ["1", "xiangliy", "Sogn"]
+	}
+	*/
+	@Path("/singleRowPrediction")
 	@POST
 	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response GeneratePrediction(String data)  throws Exception{
-		logger.info( "GeneratePrediction: " + data );
-		
-		Prediction prediction = new Prediction();
+	public Response RowPredict(String data) throws Exception{
+		logger.info( "rowPrediction: " + data );
 		JSONObject jsonObject = new JSONObject();
+		
 		try{
-			JSONObject partsData = new JSONObject(data);
+			JSONObject jsonData = new JSONObject(data);
+			Integer selectedRow = jsonData.getInt("selectedRow");
 			
-			int type = partsData.optInt("type"); //rowSingle 1, rowMulti 2, colSingle 3, colMulti 4.
-			Integer selectedRow = partsData.optInt("selectedRow");
-			Integer selectedColumn = partsData.optInt("selectedColumn");
-			JSONArray selectedRows = partsData.getJSONArray("selectedRows");
-			JSONArray selectedColumns = partsData.getJSONArray("selectedColumns");
+			//get and parse header
+			JSONArray header = jsonData.getJSONArray("header");
+			String[] headerArray = convertStringArray(header);
 			
-			JSONArray columnHead = partsData.getJSONArray("columnHead");
-			JSONArray selectedRowData = partsData.getJSONArray("selectedRowData");
-			JSONArray selectedColumnData = partsData.getJSONArray("selectedColumnData");
-			
-			if (selectedRows == null) {
-			}
-			Integer[] selectedRowsInt = new Integer[selectedRows.length()];
-			for (int i = 0; i < selectedRows.length(); ++i) {
-				selectedRowsInt[i] = selectedRows.optInt(i);
-			}
-			
-			if (selectedColumns == null) {
-			}
-			Integer[] selectedColumnsInt = new Integer[selectedColumns.length()];
-			for (int i = 0; i < selectedColumns.length(); ++i) {
-				selectedColumnsInt[i] = selectedColumns.optInt(i);
-			}
-			
-			if (columnHead == null) {
-			}
-			String[] columnheadStr = new String[columnHead.length()];
-			for (int i = 0; i < columnHead.length(); ++i) {
-				columnheadStr[i] = columnHead.optString(i);
-			}
-			
-			if (selectedRowData == null) {
-			}
-			String[] selectedRowDataStr = new String[selectedRowData.length()];
-			for (int i = 0; i < selectedRowData.length(); ++i) {
-				selectedRowDataStr[i] = selectedRowData.optString(i);
-			}
-			
-			if (selectedColumnData == null) {
-			}
-			String[] selectedColumnDataStr = new String[selectedColumnData.length()];
-			for (int i = 0; i < selectedColumnData.length(); ++i) {
-				selectedColumnDataStr[i] = selectedColumnData.optString(i);
-			}
-			
+			//get and parse row data
+			JSONArray rowData = jsonData.getJSONArray("data");
+			String[] rowDataArray = convertStringArray(rowData);
 			
 			Selection s = new Selection();
-			EnumType etype = null;
-			switch(type){
-			case 1:
-				etype = EnumType.rowSingle;
-				break;
-			case 2:
-				etype = EnumType.rowMulti;
-				break;
-			case 3:
-				etype = EnumType.colSingle;
-				break;
-			case 4:
-				etype = EnumType.colMulti;
-				break;
-			default:
-				etype = null;
-			}
-			
-			s.setType(etype);
+			s.setType(EnumType.rowSingle);
 			s.setSelectedRow(selectedRow);
-			s.setSelectedColumn(selectedColumn);
-			s.setSelectedRows(selectedRowsInt);
-			s.setSelectedColumns(selectedColumnsInt);
 			
-			JSONArray array = new JSONArray();
-			Iterator<PredictionProbability> it = prediction.generateOperations(selectedRowDataStr, selectedColumnDataStr, s, columnheadStr).iterator();
-			while(it.hasNext()){
-				PredictionProbability p = it.next();
-				
-				JSONObject object = new JSONObject();
-				object.put("value", p.getStrOp());
-				object.put("type", p.getEnumpredict());
-				
-				array.put(object);
-			}
-			
-			jsonObject.put("predictions", array);
+			jsonObject = processPrediction(rowDataArray, null, s, headerArray);
 			
 		}catch(Exception e){
-			
+			logger.info( "exception rowPrediction: " + data );
 		}
 		
-		String returnString = jsonObject.toString();
+		return Response.ok(jsonObject.toString()).build();
+	}
+	
+	/*
+	{
+		"selectedRows" : [1, 2, 3],
+		"header" : ["id", "name", "address"],
+	}
+	*/
+	@Path("/multipleRowPrediction")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response RowsPredict(String data)  throws Exception{
+		logger.info( "rowsPrediction: " + data );
+		JSONObject jsonObject = new JSONObject();
 		
-		return Response.ok(returnString).build();
+		try{
+			JSONObject jsonData = new JSONObject(data);
+			
+			//get and parse header
+			JSONArray header = jsonData.getJSONArray("header");
+			String[] headerArray = convertStringArray(header);
+			
+			//get and parse row data
+			JSONArray rowArray = jsonData.getJSONArray("selectedRows");
+			Integer[] selectedRows = convertIntArray(rowArray);
+			
+			Selection s = new Selection();
+			s.setType(EnumType.rowMulti);
+			s.setSelectedRows(selectedRows);
+			
+			jsonObject = processPrediction(null, null, s, headerArray);
+		}catch(Exception e){
+			logger.info( "exception rowPrediction: " + data );
+		}
+		
+		return Response.ok(jsonObject.toString()).build();
+	}
+	
+	/*
+	{
+		"selectedColumn" : "2",
+		"header" : ["id", "name", "address"],
+		"data" : ["kringsja", "sogn", "oslo"]
+	}
+	*/
+	@Path("/singleColumnPrediction")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response ColumnPredict(String data) throws Exception{
+		logger.info( "columnPrediction: " + data );
+		JSONObject jsonObject = new JSONObject();
+		
+		try{
+			JSONObject jsonData = new JSONObject(data);
+			Integer selectedColumn = jsonData.getInt("selectedColumn");
+			
+			//get and parse header
+			JSONArray header = jsonData.getJSONArray("header");
+			String[] headerArray = convertStringArray(header);
+			
+			//get and parse column data
+			JSONArray columnData = jsonData.getJSONArray("data");
+			String[] columnDataArray = convertStringArray(columnData);
+			
+			Selection s = new Selection();
+			s.setType(EnumType.colSingle);
+			s.setSelectedColumn(selectedColumn);
+			
+			jsonObject = processPrediction(columnDataArray, null, s, headerArray);
+			
+		}catch(Exception e){
+			logger.info( "exception rowPrediction: " + data );
+		}
+		
+		return Response.ok(jsonObject.toString()).build();
+	}
+	
+	/*
+	{
+		"selectedColumns" : [1, 2, 3],
+		"header" : ["id", "name", "address"],
+	}
+	*/
+	@Path("/multipleColumnPrediction")
+	@POST
+	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response ColumnsPredict(String data)  throws Exception{
+		logger.info( "columnsPrediction: " + data );
+		JSONObject jsonObject = new JSONObject();
+		
+		try{
+			JSONObject jsonData = new JSONObject(data);
+			
+			//get and parse header
+			JSONArray header = jsonData.getJSONArray("header");
+			String[] headerArray = convertStringArray(header);
+			
+			//get and parse column data
+			JSONArray columnArray = jsonData.getJSONArray("selectedColumns");
+			Integer[] selectedColumns = convertIntArray(columnArray);
+			
+			Selection s = new Selection();
+			s.setType(EnumType.colMulti);
+			s.setSelectedRows(selectedColumns);
+			
+			jsonObject = processPrediction(null, null, s, headerArray);
+		}catch(Exception e){
+			logger.info( "exception rowPrediction: " + data );
+		}
+		
+		return Response.ok(jsonObject.toString()).build();
 	}
 	
 	//get class and property from vocabulary
@@ -594,6 +640,48 @@ public class VocabularyAPI {
 	    }
 	    
 	    return jsonArray;
+	}
+	
+	JSONObject processPrediction(String[] curRowdata, String [] curColumnData, Selection s, String [] header) throws JSONException{
+		
+		JSONObject retObject = new JSONObject();
+		JSONArray array = new JSONArray();
+		Prediction prediction = new Prediction();
+		
+		Iterator<PredictionProbability> it = prediction.generateOperations(curRowdata, curColumnData, s, header).iterator();
+		while(it.hasNext()){
+			PredictionProbability p = it.next();
+			JSONObject objectTmp = new JSONObject();
+			objectTmp.put("value", p.getStrOp());
+			objectTmp.put("type", p.getEnumpredict());
+			array.put(objectTmp);
+		}
+		
+		retObject.put("predictions", array);
+		
+		return retObject;
+	}
+	
+	Integer[] convertIntArray(JSONArray jsonArray) throws JSONException{
+		Integer[] array= null;
+		if (jsonArray != null) {
+			array = new Integer[jsonArray.length()];
+			for (int i = 0; i < jsonArray.length(); ++i) {
+				array[i] = jsonArray.getInt(i);
+			}
+		}
+		return array;
+	}
+	
+	String[] convertStringArray(JSONArray jsonArray) throws JSONException{
+		String[] array= null;
+		if (jsonArray != null) {
+			array = new String[jsonArray.length()];
+			for (int i = 0; i < jsonArray.length(); ++i) {
+				array[i] = jsonArray.getString(i).toString();
+			}
+		}
+		return array;
 	}
 	
 	private String getStackTrace(Exception e){

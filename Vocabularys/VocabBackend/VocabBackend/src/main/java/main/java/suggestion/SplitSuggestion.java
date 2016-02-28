@@ -18,19 +18,19 @@ public class SplitSuggestion extends Suggestion{
 		String [] l = strSuggestion.split(" ");
 		switch(predictType){
 		case SingleRowSplitBasic:
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiRowSplitBasic:
-			ProbabilityFile.increaseMultiRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleColumnSplitBasic:
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleColumnSplitCommenWord:
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiColumnSplitBasic:
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		default:
 			break;

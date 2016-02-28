@@ -15,22 +15,22 @@ public class DeleteSuggestion extends Suggestion{
 		String [] l = strSuggestion.split(" ");
 		switch(predictType){
 		case SingleRowDeleteEmpty:
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			String column = l[1];
 			
 			break;
 		case SingleRowDeleteBasic:
 			column = l[2];
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiRowDeleteBasic:
-			ProbabilityFile.increaseMultiRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleColumnDeleteBasic:
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			column = l[1];
 		case MultiColumnDeleteBasic:
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			column = l[1];
 		default:
 			break;

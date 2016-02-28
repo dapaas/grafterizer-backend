@@ -15,22 +15,22 @@ public class FoldSuggestion extends Suggestion{
 		String [] l = strSuggestion.split(" ");
 		switch(predictType){
 		case SingleRowFoldUsingRow:
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleRowFoldUsingColumn:
-			ProbabilityFile.increaseSingleRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiRowFoldUsingRow:
-			ProbabilityFile.increaseMultiRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiRowFoldUsingColumn:
-			ProbabilityFile.increaseMultiRowProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case SingleColumnFoldBasic:
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		case MultiColumnFoldBasic:
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			break;
 		default:
 			break;

@@ -106,7 +106,7 @@ public class Prediction {
 	}
 	
 	private Boolean AddPrediction(String opstr, EnumPredict e){
-		Boolean inserted = false;
+		Boolean insert = false;
 		Double probability = 0.0;
 		
 		PredictionProbability p = new PredictionProbability();
@@ -114,20 +114,26 @@ public class Prediction {
 		p.setStrOp(opstr);
 		p.setEnumpredict(e);
 		
-		probability = ProbabilityFile.getProbability(e);
+		probability = ProbabilityFile.getProbability(e).doubleValue();
 		
 		Iterator<PredictionProbability> it = suggestionList.iterator();
 		
-		while(it.hasNext()) {
+		int size = suggestionList.size();
+		int index = 0;
+		
+		for(int i = 0; i < size; i++){
 			PredictionProbability tempPre = it.next();
 			if(probability > tempPre.probability){
-				int index = suggestionList.indexOf(tempPre);
-				suggestionList.add(index, p);
-				inserted = true;
+				index = suggestionList.indexOf(tempPre);
+				
+				insert = true;
 			}
 		}
 		
-		if(inserted == false){
+		if(insert){
+			suggestionList.add(index, p);
+		}
+		else{
 			suggestionList.add(p);
 		}
 		

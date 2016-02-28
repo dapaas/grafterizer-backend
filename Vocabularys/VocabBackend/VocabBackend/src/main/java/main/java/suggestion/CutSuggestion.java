@@ -16,14 +16,14 @@ public class CutSuggestion extends Suggestion{
 		switch(predictType){
 		case SingleColumnCutBasic:
 			String column = l[1];
-			ProbabilityFile.increaseSingleColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			
 			//return closure code 
 			
 			break;
 		case MultiColumnCutBasic:
 			column = l[1];
-			ProbabilityFile.increaseMultiColumnProbability(predictType);
+			ProbabilityFile.increaseProbability(predictType);
 			
 			//return closure code 
 			

@@ -1,13 +1,11 @@
 package main.java.prediction;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import java.lang.Math;
 
 public class ProbabilityFile {
 	static Map<EnumPredict, Double> singleRowProbability = new HashMap<EnumPredict, Double>();
@@ -15,151 +13,101 @@ public class ProbabilityFile {
 	static Map<EnumPredict, Double> singleColumnProbability = new HashMap<EnumPredict, Double>();
 	static Map<EnumPredict, Double> multiColumnProbability = new HashMap<EnumPredict, Double>();
 	
-	public static Double getProbability(EnumPredict e){
-		Double d = getSingleRowProbability(e);
-		if(d != Double.MIN_VALUE){
-			 return d;
-		}
-		
-		d = getMultiRowProbability(e);
-		if(d != Double.MIN_VALUE){
-			 return d;
-		}
-		
-		d = getSingleColumnProbability(e);
-		if(d != Double.MIN_VALUE){
-			 return d;
-		}
-		
-		d = getMultiColumnProbability(e);
-		if(d != Double.MIN_VALUE){
-			 return d;
-		}
-		
-		return 0.0;
-	}
-	
-	private static Double getSingleRowProbability(EnumPredict e){
-		readFile("singlerow");
-		if(singleRowProbability.containsKey(e)){
-			return singleRowProbability.get(e);
-		}
-		else{
-			return Double.MIN_VALUE;
-		}
-	}
-	
-	private static Double getMultiRowProbability(EnumPredict e){
-		readFile("multirow");
-
-		if(multiRowProbability.containsKey(e)){
-			return multiRowProbability.get(e);
-		}
-		else{
-			return Double.MIN_VALUE;
-		}
-	}
-	
-	private static Double getSingleColumnProbability(EnumPredict e){
-		readFile("singlecol");
-		
-		if(singleColumnProbability.containsKey(e)){
-			return singleColumnProbability.get(e);
-		}
-		else{
-			return Double.MIN_VALUE;
-		}
-	}
-	
-	private static Double getMultiColumnProbability(EnumPredict e){
-		readFile("multicol");
-		if(multiColumnProbability.containsKey(e)){
-			return multiColumnProbability.get(e);
-		}
-		else{
-			return Double.MIN_VALUE;
-		}
-	}
-	
-	public static void increaseSingleRowProbability(EnumPredict e){
-		readFile("singlerow");
-		if(singleRowProbability.containsKey(e)){
-			Double d = singleRowProbability.get(e);
-			if(d <= 0.0){
-				d = 0.0;
-			}
-			d = Math.log(Math.log(d) + 1);
-			singleRowProbability.put(e, d);
-		}else{
-			singleRowProbability.put(e, 1.0);
-		}
-		
-		writeFile("singlerow");
-	}
-	
-	public static void increaseMultiRowProbability(EnumPredict e){
-		readFile("multirow");
-		if(multiRowProbability.containsKey(e)){
-			Double d = multiRowProbability.get(e);
-			if(d <= 0.0){
-				d = 0.0;
-			}
-			d = Math.log(Math.log(d) + 1);
-			multiRowProbability.put(e, d);
-		}else{
-			multiRowProbability.put(e, 1.0);
-		}
-		writeFile("multirow");
-	}
-	
-	public static void increaseSingleColumnProbability(EnumPredict e){
-		readFile("singlecol");
-		if(singleColumnProbability.containsKey(e)){
-			Double d = singleColumnProbability.get(e);
-			if(d <= 0.0){
-				d = 0.0;
-			}
-			d = Math.log(Math.log(d) + 1);
-			singleColumnProbability.put(e, d);
-		}else{
-			singleColumnProbability.put(e, 1.0);
-		}
-		
-		writeFile("singlecol");
-	}
-	
-	public static void increaseMultiColumnProbability(EnumPredict e){
-		readFile("multicol");
-		if(multiColumnProbability.containsKey(e)){
-			Double d = multiColumnProbability.get(e);
-			if(d <= 0.0){
-				d = 0.0;
-			}
-			d = Math.log(Math.log(d) + 1);
-			multiColumnProbability.put(e, d);
-		}else{
-			multiColumnProbability.put(e, 1.0);
-		}
-		
-		writeFile("multicol");
-	}
-
-	private static void readFile(String type){
+	private static Connection getConnection() {
+		Connection connection = null;
 		try{
-			File file = new File(type);
+			Class.forName("com.mysql.jdbc.Driver");
+			
+			connection = DriverManager.getConnection(
+			   "jdbc:mysql://localhost:3306/probability","root", "root");
+			
+			if (connection == null) {
+		            System.out.println("Failed to make connection");
+		    }
+		}catch(Exception e){
+			
+		}
+		
+		return connection;
+	}
+	
+	private static void closeConnection(Connection connection) {
+		try{
+			connection.close();
+		}catch(Exception e){
+			
+		}
+		
+	}
+	
+	public static void increaseProbability(EnumPredict ep){
+		Connection conn = getConnection();
+		
+		try{
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("select value from probability where key_id = '" + ep +"'");
+			
+			if (!rs.next()) {
+				stmt.execute("insert into probability values('" + ep + "', '" + 1.0 + "')");
+            }
+			else{
+				String value = rs.getString("value");
+            	Integer iValue = Integer.parseInt(value);
+            	iValue += 1;
+            	value = iValue.toString();
+            	stmt.execute("update probability set value = '" + value + "' where key_id = '" + ep + "'");
+			}
+			conn.close();
+		}catch(Exception e){
+		}
+		
+		
+		
+		//d = Math.log(Math.log(d) + 1);
+	}
+	
+	
+	
+	public static Integer getProbability(EnumPredict ep){
+		Connection conn = getConnection();
+		
+		Integer iValue = null;
+		
+		try{
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("select * from probability where key_id = '" + ep +"'");
+			if (!rs.next()) {
+				stmt.execute("insert into probability values('" + ep + "', '" + 1 + "')");
+				iValue = 1;
+			}else{
+				String value = rs.getString("value");
+            	iValue = Integer.parseInt(value);
+			}
+			
+			conn.close();
+		}catch(Exception e){
+		}
+		
+		return iValue;
+	}
+	
+	/*
+	private static void readFile(int type){
+		try{
+			File file = new File("readFile");
 			FileInputStream f = new FileInputStream(file);
 			ObjectInputStream s = new ObjectInputStream(f);
 			switch(type){
-			case "singlerow":
+			case 1:
 			    singleRowProbability = (HashMap<EnumPredict, Double>) s.readObject();
 			    break;
-			case "multirow":
+			case 2:
 			    multiRowProbability = (HashMap<EnumPredict, Double>) s.readObject();
 			    break;
-			case "singlecol":
+			case 3:
 			    singleColumnProbability = (HashMap<EnumPredict, Double>) s.readObject();
 			    break;
-			case "multicol":
+			case 4:
 			    multiColumnProbability = (HashMap<EnumPredict, Double>) s.readObject();
 			    break;
 			default:
@@ -172,22 +120,22 @@ public class ProbabilityFile {
 		}
 	}
 	
-	private static void writeFile(String type){
+	private static void writeFile(int type){
 		try{
-			File file = new File(type);
+			File file = new File("writeFile");
 			FileOutputStream f = new FileOutputStream(file);
 			ObjectOutputStream s = new ObjectOutputStream(f);
 			switch(type){
-			case "singlerow":
+			case 1:
 				s.writeObject(singleRowProbability);
 			    break;
-			case "multirow":
+			case 2:
 				s.writeObject(multiRowProbability);
 			    break;
-			case "singlecol":
+			case 3:
 				s.writeObject(singleColumnProbability);
 			    break;
-			case "multicol":
+			case 4:
 				s.writeObject(multiColumnProbability);
 			    break;
 			default:
@@ -199,5 +147,6 @@ public class ProbabilityFile {
 		}finally{
 		}
 	}
+	*/
 
 }

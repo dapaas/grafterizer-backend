@@ -1,11 +1,16 @@
-package main.java.prediction;
+package test.java.prediction;
 
-import static org.junit.Assert.*;
-
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import main.java.prediction.EnumPredict;
+import main.java.prediction.EnumType;
+import main.java.prediction.Prediction;
+import main.java.prediction.Selection;
 import main.java.prediction.Prediction.PredictionProbability;
 
 import org.junit.After;
@@ -30,10 +35,10 @@ public class PredictionTest {
 		s.setSelectedColumn(1);
 		s.setSelectedRow(1);
 		Integer[] lcolumn = {0, 1};
-		s.selectedColumns = lcolumn;
+		s.setSelectedColumns(lcolumn);
 		
 		Integer[] lrow = {1, 2};
-		s.selectedRows = lrow;
+		s.setSelectedRows(lrow);
 		
 		p.parseOperation("Delete rows where column1 = '123'", EnumPredict.SingleColumnDeleteBasic);
 	}
@@ -50,7 +55,7 @@ public class PredictionTest {
 	}
 
 	@Test
-	public void testGenerateOperations() {
+	public void testGenerateOperations() throws SQLException, ClassNotFoundException {
 		String [][] data = {
 				{"2004", "4029.3", "crime at Oslo"},
 				{"2005", "3900", "crime at Bergen"},
@@ -77,7 +82,7 @@ public class PredictionTest {
 		Iterator<PredictionProbability> it = p.generateOperations(data[1], columnData, s, columnHead).iterator();
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
-			System.out.println(p.strOp);
+			System.out.println(p.getStrOp());
 		}
 		
 		System.out.println("Test 2------------------------------------------");
@@ -88,7 +93,7 @@ public class PredictionTest {
 		it = p.generateOperations(data[3], columnData, s, columnHead).iterator();
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
-			System.out.println(p.strOp);
+			System.out.println(p.getStrOp());
 		}
 				
 		System.out.println("Test 3------------------------------------------");
@@ -101,7 +106,7 @@ public class PredictionTest {
 		it = p.generateOperations(data[0], columnData, s, columnHead).iterator();
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
-			System.out.println(p.strOp);
+			System.out.println(p.getStrOp());
 		}
 		
 		System.out.println("Test 4------------------------------------------");
@@ -113,7 +118,7 @@ public class PredictionTest {
 		it = p.generateOperations(data[0], getSelectedColumnData(2, data), s, columnHead).iterator();
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
-			System.out.println(p.strOp);
+			System.out.println(p.getStrOp());
 		}
 		
 		System.out.println("Test 5------------------------------------------");
@@ -126,7 +131,7 @@ public class PredictionTest {
 		it = p.generateOperations(data[0], columnData, s, columnHead).iterator();
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
-			System.out.println(p.strOp);
+			System.out.println(p.getStrOp());
 		}
 	}
 
