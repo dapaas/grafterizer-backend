@@ -1,0 +1,23 @@
+{
+  "name": "grafterizer-reborn",
+  "version": "0.1.0",
+  "description": "",
+  "main": "server.js",
+  "author": "Antoine Pultier <antoine.pultier@sintef.no>",
+  "license": "ISC",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jscs server.js && jshint server.js"
+  },
+  "dependencies": {
+    "client-sessions": "^0.7.0",
+    "compression": "^1.6.1",
+    "cors": "^2.7.1",
+    "express": "^4.13.4",
+    "morgan": "^1.7.0",
+    "raven": "^0.10.0",
+    "request": "^2.69.0",
+    "serve-favicon": "^2.3.0",
+    "simple-oauth2": "^0.5.1"
+  }
+}
