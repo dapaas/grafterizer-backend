@@ -10,10 +10,12 @@
     "test": "jscs server.js && jshint server.js"
   },
   "dependencies": {
+    "agentkeepalive": "^2.0.3",
     "client-sessions": "^0.7.0",
     "compression": "^1.6.1",
     "cors": "^2.7.1",
     "express": "^4.13.4",
+    "http-proxy": "^1.13.2",
     "morgan": "^1.7.0",
     "raven": "^0.10.0",
     "request": "^2.69.0",

@@ -73,7 +73,7 @@ module.exports = (app, settings) => {
       error
     });
 
-    res.status(error.status ? error.status : 500);
+    res.status(error && error.status ? error.status : 500);
 
     // res.render('error', {error: error});
     res.json(error);
@@ -142,10 +142,9 @@ module.exports = (app, settings) => {
 
     // If the request is invalid
     if (!req.query.code) {
-      return showError(req, res, {
+      return showError(req, res, 'The OAuth2 code parameter is missing', {
         status: 400,
-        message: 'Bad Request',
-        description: 'The OAuth2 code parameter is missing'
+        message: 'Bad Request'
       });
     }
 
@@ -167,13 +166,13 @@ module.exports = (app, settings) => {
         // The error may contain a context with more
         // information
         if (error.context) {
-          return showError(req, res, {
+          return showError(req, res, 'Error while checking the token', {
             status: error.status,
             message: error.context.error,
             description: error.context.error_description
           });
         } else {
-          return showError(req, res, {
+          return showError(req, res, 'Error while checking the token', {
             status: error.status,
             message: error.message,
           });

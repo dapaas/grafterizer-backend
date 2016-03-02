@@ -77,9 +77,12 @@ if (!oauth2ClientID) console.error('OAUTH2_CLIENT_ID must be defined') & process
 const oauth2ClientSecret = process.env.OAUTH2_CLIENT_SECRET;
 if (!oauth2ClientSecret) console.error('OAUTH2_CLIENT_SECRET must be defined') & process.exit(1);
 
-// Required OAuth2 authentication server site
-const oauth2Site = process.env.OAUTH2_SITE;
-if (!oauth2Site) console.error('OAUTH2_SITE must be defined') & process.exit(1);
+// Required datagraft server address
+const datagraftUri = process.env.DATAGRAFT_URI;
+if (!datagraftUri) console.error('DATAGRAFT_URI must be defined') & process.exit(1);
+
+// OAuth2 authentication server site, default to datagraftUri
+const oauth2Site = process.env.OAUTH2_SITE || datagraftUri;
 
 // Setting up the express HTTP server
 const app = express();
@@ -115,6 +118,12 @@ require('./authentication')(app, {
 
 app.get('/', (req, res) => {
   res.send('lol');
+});
+
+// All the remaining requests are proxied to DataGraft,
+// to use the DataGraft API while being authentified
+require('./datagraftProxy')(app, {
+  datagraftUri
 });
 
 // Starting the HTTP server
