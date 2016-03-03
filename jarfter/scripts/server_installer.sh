@@ -36,7 +36,7 @@ lein
 
 # Compile jarfter-template and rename the standalone jar 
 cd jarfter-template
-mvn install:install-file -Dfile=ww-geo-coords-1.0.jar -DgroupId=ww-geo-coords -DartifactId=ww-geo-coords -Dversion=1.0 -Dpackaging=jar -DlocalRepositoryPath=maven_repository
+vn deploy:deploy-file -Dfile=ww-geo-coords-1.0.jar -DgroupId=ww-geo-coords -DartifactId=ww-geo-coords -Dversion=1.0 -Dpackaging=jar -DlocalRepositoryPath=maven_repository -Durl=file:maven_repository
 lein uberjar
 cp target/jarfter-0.1.0-SNAPSHOT-standalone.jar jarfter.jar
 cd -
