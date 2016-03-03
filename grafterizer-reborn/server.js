@@ -44,11 +44,6 @@ const serverPort = process.env.HTTP_PORT || 8082;
 // from the same server can access to this service
 const disableCors = !!process.env.DISABLE_CORS;
 
-// CORS origin is the domain that are allowed by CORS.
-// localhost and grafterizer.datagraft.net are allowed by default
-// It must not be *
-const corsOrigin = (process.env.CORS_ORIGIN || 'http://localhost:9000,https://grafterizer.datagraft.net').split(',');
-
 // How long the client session should stay valid in ms, 2 hours by default
 const sessionDuration = parseInt(process.env.SESSION_DURATION) || 2 * 60 * 60 * 1000;
 
@@ -68,6 +63,12 @@ const trustProxyNumber = parseInt(process.env.TRUST_PROXY_NUMBER) || 0;
  * The following settings are required and the service will not start
  * if they are missing.
  */
+
+// CORS origin is the domain that are allowed by CORS.
+// localhost and grafterizer.datagraft.net are allowed by default
+// It must not be *
+if (!process.env.CORS_ORIGIN) console.error('CORS_ORIGIN must not be empty') & process.exit(1);
+const corsOrigin = (process.env.CORS_ORIGIN || '').split(',');
 
 // The cookie store secret is used to generate private keys for the cookie session store.
 // It should be a large unguessable string
