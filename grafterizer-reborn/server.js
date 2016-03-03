@@ -44,6 +44,11 @@ const serverPort = process.env.HTTP_PORT || 8082;
 // from the same server can access to this service
 const disableCors = !!process.env.DISABLE_CORS;
 
+// CORS origin is the domain that are allowed by CORS.
+// localhost and grafterizer.datagraft.net are allowed by default
+// It must not be *
+const corsOrigin = (process.env.CORS_ORIGIN || 'http://localhost:9000,https://grafterizer.datagraft.net').split(',');
+
 // How long the client session should stay valid in ms, 2 hours by default
 const sessionDuration = parseInt(process.env.SESSION_DURATION) || 2 * 60 * 60 * 1000;
 
@@ -94,7 +99,14 @@ app.use(compression());
 app.use(morgan('short'));
 
 // Enable CORS request if necessary
-if (!disableCors) app.use(cors());
+if (!disableCors) app.use(cors({
+  // Credentials is required to use the cookie session storage
+  credentials: true,
+
+  // When credentials is enabled, corsOrigin should be defined
+  // and not be *
+  origin: corsOrigin
+}));
 
 // Configure Express to trust the proxy for nTh clients
 // It is used to get the IP address from the proxy,

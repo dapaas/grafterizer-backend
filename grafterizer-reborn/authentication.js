@@ -79,6 +79,28 @@ module.exports = (app, settings) => {
     res.json(error);
   };
 
+  // Display the status of the Authentification for the user
+  // For debugging purpose or to proactively check the connection
+  app.get('/oauth/status', (req, res) => {
+    res.json({connected: !!(req.oauthSession && req.oauthSession.token)});
+  });
+
+  // Simple service that should redirect to the main page once
+  // the user is correctly authentified
+  app.get('/oauth/begin', (req, res) => {
+    if (!req.oauthSession || !req.oauthSession.token) {
+      var referrer = req.get('Referrer');
+      if (referrer) {
+        req.oauthSession.referrer = referrer;
+      }
+
+      return res.redirect(authorizationUri);
+    }
+
+    res.redirect(req.oauthSession.referrer || '/');
+    delete req.oauthSession.referrer;
+  });
+
   // Check if the user has a valid authentication token before
   // proceeding her request. The token is potentially renewed
   // This method is executed before each request
@@ -89,7 +111,10 @@ module.exports = (app, settings) => {
 
     // If the session doesn't exist, or the session data doesn't contain a token,
     // Grafterizer redirect to the OAuth2 Grant page
-    if (!req.oauthSession || !req.oauthSession.token) return res.redirect(authorizationUri);
+    if (!req.oauthSession || !req.oauthSession.token) {
+      // return res.redirect(authorizationUri);
+      return res.status(401).send();
+    }
 
     // Retrieve the token from the session store
     let token = reanimeToken(req.oauthSession.token);
@@ -182,16 +207,11 @@ module.exports = (app, settings) => {
       // Saving the token
       req.oauthSession.token = result;
 
-      // Redirect to the main page
-      res.redirect('/oauth/status');
+      // Redirect to the main page or the referrer
+      res.redirect(req.oauthSession.referrer || '/');
+      delete req.oauthSession.referrer;
     });
   });
-
-  // Display the status of the Authentification for the user
-  app.get('/oauth/status', (req, res) => {
-    res.send('you hare correctly authentified (lol)');
-  });
-
 };
 
 // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
