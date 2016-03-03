@@ -19,8 +19,8 @@ if len(sys.argv) < 3:
 input_clj = sys.argv[1]
 output_war = sys.argv[2]
 
-endpoint = "http://54.171.122.44:8080/jarfter/webresources/warfter"
-#endpoint = "http://localhost:8088/jarfter/webresources/warfter"
+#endpoint = "http://54.171.122.44:8080/jarfter/webresources/warfter"
+endpoint = "http://localhost:8080/jarfter/webresources/warfter"
 
 headers = {}
 #headers["Content-Length"]= "%d" % os.stat(input_clj).st_size

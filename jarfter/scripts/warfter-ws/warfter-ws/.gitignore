@@ -8,3 +8,4 @@ pom.xml.asc
 *.class
 /.lein-*
 /.nrepl-port
+!ww-geo-coords-1.0.jar
