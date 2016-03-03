@@ -14,6 +14,7 @@ COPY ./scripts/jarfter_config.json /usr/local/var/jarfter_config.json
 
 # Compile jarfter-template and rename the standalone jar
 WORKDIR /usr/local/var/jarfter-template/jarfter-template
+RUN mvn deploy:deploy-file -Dfile=ww-geo-coords-1.0.jar -DgroupId=ww-geo-coords -DartifactId=ww-geo-coords -Dversion=1.0 -Dpackaging=jar -DlocalRepositoryPath=maven_repository -Durl=file:maven_repository
 RUN lein uberjar
 RUN cp /usr/local/var/jarfter-template/target/jarfter-0.1.0-SNAPSHOT-standalone.jar /usr/local/var/jarfter-template/jarfter.jar
 
