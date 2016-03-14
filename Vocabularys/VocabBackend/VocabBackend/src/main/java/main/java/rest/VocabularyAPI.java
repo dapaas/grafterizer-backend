@@ -384,6 +384,11 @@ public class VocabularyAPI {
 		return Response.ok(returnString).build();
 	}
 	
+	/*
+	{
+		"type" : "SingleColumnCopyBasic",
+	}
+	*/
 	@Path("/parse")
 	@POST
 	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
@@ -393,25 +398,20 @@ public class VocabularyAPI {
 		JSONObject jsonObject = new JSONObject();
 		
 		try{
-			JSONObject partsData = new JSONObject(data);
+			JSONObject jsonData = new JSONObject(data);
+			String strType = jsonData.getString("type");
 			
-			String strPrediction = partsData.getString("prediction");
-			String strType = partsData.getString("type");
-			
-			EnumPredict epredict = EnumPredict.valueOf(strType);
-			
-			String str = prediction.parseOperation(strPrediction, epredict);
-			
-			jsonObject.put("closure", str);
+			EnumPredict enumPredict = EnumPredict.valueOf(strType);
+			prediction.incProbability(enumPredict);
 			
 		}catch(Exception e){
 			
 		}
 		
 		String returnString = jsonObject.toString();
-		
 		return Response.ok(returnString).build();
 	}
+	
 	/*
 	{
 		"selectedRow" : "1",
@@ -654,6 +654,7 @@ public class VocabularyAPI {
 			JSONObject objectTmp = new JSONObject();
 			objectTmp.put("value", p.getStrOp());
 			objectTmp.put("type", p.getEnumpredict());
+			objectTmp.put("closure", p.getStrClosure());
 			array.put(objectTmp);
 		}
 		

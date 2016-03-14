@@ -9,54 +9,35 @@ import main.java.prediction.ProbabilityFile;
 import main.java.prediction.Selection;
 
 public class MergeSuggestion extends Suggestion{
-	
-	@Override
-	String parseSuggestion(String strSuggestion, EnumPredict predictType){
-		String [] l = strSuggestion.split(" ");
-		switch(predictType){
-		case SingleRowMergeBasic:
-			String column = l[2];
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		case MultiRowMergeBasic:
-			column = l[2];
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		case SingleColumnMergeBasic:
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		case MultiColumnMergeBasic:
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		default:
-			break;
-		}
-		return "";
-	}
-	
+
 	@Override
 	List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
+		String closure = "";
 		
 		String opStr = "";
 		if(selection.getType() == EnumType.rowSingle){
 			opStr = "Merge " + selection.getSelectedRow();
-			AddItem(oplist, opStr, EnumPredict.SingleRowMergeBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.SingleRowMergeBasic, closure);
 		}
 		
 		if(selection.getType() == EnumType.rowMulti){
 			opStr = "Merge " + getSelectedRows(selection);
-			AddItem(oplist, opStr, EnumPredict.MultiRowMergeBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.MultiRowMergeBasic, closure);
 		}
 		
 		if(selection.getType() == EnumType.colSingle){
 			opStr = "Merge " + columnhead[selection.getSelectedColumn()];
-			AddItem(oplist, opStr, EnumPredict.SingleColumnMergeBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.SingleColumnMergeBasic, closure);
 		}
 		
 		if(selection.getType() == EnumType.colMulti){
 			opStr = "Merge " + getSelectedColumns(selection, columnhead);
-			AddItem(oplist, opStr, EnumPredict.MultiColumnMergeBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.MultiColumnMergeBasic, closure);
 		}
 		
 		return oplist;

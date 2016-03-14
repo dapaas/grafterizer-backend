@@ -1,8 +1,5 @@
 package test.java.prediction;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -40,7 +37,7 @@ public class PredictionTest {
 		Integer[] lrow = {1, 2};
 		s.setSelectedRows(lrow);
 		
-		p.parseOperation("Delete rows where column1 = '123'", EnumPredict.SingleColumnDeleteBasic);
+		p.incProbability(EnumPredict.SingleColumnDeleteBasic);
 	}
 	
 	private String[] getSelectedColumnData(int columnid, String[][] data){
@@ -55,7 +52,7 @@ public class PredictionTest {
 	}
 
 	@Test
-	public void testGenerateOperations() throws SQLException, ClassNotFoundException {
+	public void testGenerateOperations() {
 		String [][] data = {
 				{"2004", "4029.3", "crime at Oslo"},
 				{"2005", "3900", "crime at Bergen"},

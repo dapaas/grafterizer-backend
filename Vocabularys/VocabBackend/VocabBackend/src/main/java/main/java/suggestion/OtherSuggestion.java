@@ -36,16 +36,11 @@ public class OtherSuggestion extends Suggestion {
 		
 		if((double)lNonEmail.size()/ (double)data.length > 0.7){
 			String opStr = "Remove all items which is not email";
-			AddItem(oplist, opStr, EnumPredict.MultiColumnCutBasic);
+			String closure = "";
+			AddItem(oplist, opStr, EnumPredict.MultiColumnCutBasic, closure);
 		}
 		
 		return oplist;
-	}
-
-	@Override
-	String parseSuggestion(String strSuggestion, EnumPredict predictType) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

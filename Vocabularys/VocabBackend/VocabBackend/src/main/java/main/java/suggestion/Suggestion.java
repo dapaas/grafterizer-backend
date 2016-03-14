@@ -12,16 +12,16 @@ public abstract class Suggestion {
 	public class SuggestionItem{
 		public String content;
 		public EnumPredict predictType;
+		public String closureCode;
 	}
 	
 	abstract List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead);
 	
-	abstract String parseSuggestion(String strSuggestion, EnumPredict predictType);
-	
-	void AddItem(List<SuggestionItem> l, String s, EnumPredict e){
+	void AddItem(List<SuggestionItem> l, String content, EnumPredict e, String closure){
 		SuggestionItem item = new SuggestionItem();
-		item.content = s;
+		item.content = content;
 		item.predictType = e;
+		item.closureCode = closure;
 		l.add(item);
 	}
 	

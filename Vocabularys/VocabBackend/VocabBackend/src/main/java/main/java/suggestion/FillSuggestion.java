@@ -11,98 +11,86 @@ import main.java.prediction.Selection;
 public class FillSuggestion extends Suggestion{
 	
 	@Override
-	String parseSuggestion(String strSuggestion, EnumPredict predictType){
-		String [] l = strSuggestion.split(" ");
-		switch(predictType){
-		case SingleRowFillEmpty:
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		case SingleRowFillBasic:
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		case SingleRowFillAll:
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		case MultiRowFillBasic:
-			ProbabilityFile.increaseProbability(predictType);
-			break;
-		case SingleColumnFillBasic:
-			ProbabilityFile.increaseProbability(predictType);
-			String column = l[1];
-			break;
-		case MultiColumnFillBasic:
-			ProbabilityFile.increaseProbability(predictType);
-			column = l[1];
-			break;
-			
-		default:
-			break;
-		}
-		return "";
-	}
-	
-	@Override
 	List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
+		String closure = "";
 		
 		String opStr = "";
 		if(selection.getType() == EnumType.rowSingle){
 			//fill empty rows with value from ...
 			if(isRowEmpty(selectedRowData, selection.getSelectedRow())){
 				opStr = "Fill empty rows with value from left";
-				AddItem(oplist, opStr, EnumPredict.SingleRowFillEmpty);
+				closure = "";
+				AddItem(oplist, opStr, EnumPredict.SingleRowFillEmpty, closure);
 				opStr = "Fill empty rows with value from below";	
-				AddItem(oplist, opStr, EnumPredict.SingleRowFillEmpty);
+				closure = "";
+				AddItem(oplist, opStr, EnumPredict.SingleRowFillEmpty, closure);
 				opStr = "Fill empty rows with value from above";
-				AddItem(oplist, opStr, EnumPredict.SingleRowFillEmpty);
+				closure = "";
+				AddItem(oplist, opStr, EnumPredict.SingleRowFillEmpty, closure);
 			}
 			
 			//fill row X with value from ...
-			opStr = "Fill row " + selection.getSelectedRow() + " with value from left";		
-			AddItem(oplist, opStr, EnumPredict.SingleRowFillBasic);
+			opStr = "Fill row " + selection.getSelectedRow() + " with value from left";	
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.SingleRowFillBasic, closure);
 			opStr = "Fill row " + selection.getSelectedRow()  + " with value from below";
-			AddItem(oplist, opStr, EnumPredict.SingleRowFillBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.SingleRowFillBasic, closure);
 			opStr = "Fill row " + selection.getSelectedRow()  + " with value from above";
-			AddItem(oplist, opStr, EnumPredict.SingleRowFillBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.SingleRowFillBasic, closure);
 			
 			//fill row where column1='***' with value from left
 			int index = 0;
 			while(index < columnhead.length){
+				closure = "";
 				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from left";
-				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
+				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll, closure);
+				closure = "";
 				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from above";
-				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
+				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll, closure);
+				closure = "";
 				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from below";
-				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll);
+				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll, closure);
 				index++;
 			}
 		}
 		
 		if(selection.getType() == EnumType.rowMulti){
+			closure = "";
 			opStr = "Fill rows" + getSelectedColumns(selection, columnhead) + " with value from left";	
-			AddItem(oplist, opStr, EnumPredict.MultiRowFillBasic);
+			AddItem(oplist, opStr, EnumPredict.MultiRowFillBasic, closure);
+			closure = "";
 			opStr = "Fill rows" + getSelectedColumns(selection, columnhead) + " with value from below";	
-			AddItem(oplist, opStr, EnumPredict.MultiRowFillBasic);
+			AddItem(oplist, opStr, EnumPredict.MultiRowFillBasic, closure);
+			closure = "";
 			opStr = "Fill rows" + getSelectedColumns(selection, columnhead) + " with value from above";
-			AddItem(oplist, opStr, EnumPredict.MultiRowFillBasic);
+			AddItem(oplist, opStr, EnumPredict.MultiRowFillBasic, closure);
 		}
 		
 		if(selection.getType() == EnumType.colSingle){
+			closure = "";
 			opStr = "Fill " + columnhead[selection.getSelectedColumn()] + " with value from left";
-			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic);
+			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic, closure);
 			opStr = "Fill " + columnhead[selection.getSelectedColumn()] + " with value from above";
-			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic, closure);
 			opStr = "Fill " + columnhead[selection.getSelectedColumn()] + " with value from below";
-			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic);
+			closure = "";
+			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic, closure);
 		}
 		
 		if(selection.getType() == EnumType.colMulti){
+			closure = "";
 			opStr = "Fill " + getSelectedColumns(selection, columnhead) + " with value from left";
-			AddItem(oplist, opStr, EnumPredict.MultiColumnFillBasic);
+			AddItem(oplist, opStr, EnumPredict.MultiColumnFillBasic, closure);
+			closure = "";
 			opStr = "Fill " + getSelectedColumns(selection, columnhead) + " with value from above";
-			AddItem(oplist, opStr, EnumPredict.MultiColumnFillBasic);
+			AddItem(oplist, opStr, EnumPredict.MultiColumnFillBasic, closure);
+			closure = "";
 			opStr = "Fill " + getSelectedColumns(selection, columnhead) + " with value from below";
-			AddItem(oplist, opStr, EnumPredict.MultiColumnFillBasic);
+			AddItem(oplist, opStr, EnumPredict.MultiColumnFillBasic, closure);
 		}
 
 		return oplist;

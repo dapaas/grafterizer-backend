@@ -4,6 +4,7 @@ import java.util.List;
 
 import main.java.prediction.EnumOp;
 import main.java.prediction.EnumPredict;
+import main.java.prediction.ProbabilityFile;
 import main.java.prediction.Selection;
 import main.java.suggestion.Suggestion.SuggestionItem;
 
@@ -84,7 +85,7 @@ public class SuggestionMgr {
 		return suggestion.generateSuggestion(selectedRowData, selectedColumnData, selection, columnhead);
 	}
 	
-	public String parseSuggestion(String strSuggestion, EnumPredict predictType){
-		return suggestion.parseSuggestion(strSuggestion, predictType);
+	public void parseSuggestion(EnumPredict predictType){
+		ProbabilityFile.increaseProbability(predictType);
 	}
 }

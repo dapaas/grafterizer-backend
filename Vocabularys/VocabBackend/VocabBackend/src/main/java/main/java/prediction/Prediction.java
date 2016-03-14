@@ -16,6 +16,7 @@ public class Prediction {
 		String strOp;
 		Double probability;
 		EnumPredict enumpredict;
+		String strClosure;
 		
 		public EnumPredict getEnumpredict() {
 			return enumpredict;
@@ -34,6 +35,12 @@ public class Prediction {
 		}
 		public void setProbability(Double probability) {
 			this.probability = probability;
+		}
+		public String getStrClosure() {
+			return strClosure;
+		}
+		public void setStrClosure(String strClosure) {
+			this.strClosure = strClosure;
 		}
 	}
 
@@ -64,18 +71,9 @@ public class Prediction {
 	 * output:
 	 * closure code
 	 */
-	public String parseOperation(String op, EnumPredict predictType){
-		String [] l = op.split(" ");
-		
-		if(l.length <= 0){
-			return "";
-		}
-		
+	public void incProbability(EnumPredict predictType){
 		SuggestionMgr suggestionMgr = new SuggestionMgr();
-		suggestionMgr.setSuggestion(l[0]);
-		suggestionMgr.parseSuggestion(op, predictType);
-		
-		return op;
+		suggestionMgr.parseSuggestion(predictType);
 	}
 
 	/*
@@ -98,14 +96,14 @@ public class Prediction {
 			
 			while(it.hasNext()){
 				SuggestionItem item = it.next();
-				AddPrediction(item.content, item.predictType);
+				AddPrediction(item.content, item.predictType, item.closureCode);
 			}
 		}
 		
 		return suggestionList;
 	}
 	
-	private Boolean AddPrediction(String opstr, EnumPredict e){
+	private Boolean AddPrediction(String opstr, EnumPredict e, String closure){
 		Boolean insert = false;
 		Double probability = 0.0;
 		
@@ -113,6 +111,7 @@ public class Prediction {
 		p.setProbability(probability);
 		p.setStrOp(opstr);
 		p.setEnumpredict(e);
+		p.setStrClosure(closure);
 		
 		probability = ProbabilityFile.getProbability(e).doubleValue();
 		
