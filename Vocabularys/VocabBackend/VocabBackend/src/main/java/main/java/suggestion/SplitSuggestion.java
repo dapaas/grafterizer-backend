@@ -8,7 +8,6 @@ import java.util.Set;
 
 import main.java.prediction.EnumPredict;
 import main.java.prediction.EnumType;
-import main.java.prediction.ProbabilityFile;
 import main.java.prediction.Selection;
 
 public class SplitSuggestion extends Suggestion{
@@ -16,26 +15,25 @@ public class SplitSuggestion extends Suggestion{
 	@Override
 	List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
-		String closure = "";
 		
 		String opStr = "";
 		if(selection.getType() == EnumType.rowSingle){
+			/*
 			opStr = "Split " + selection.getSelectedRow();
 			closure = "";
 			AddItem(oplist, opStr, EnumPredict.SingleRowSplitBasic, closure);
+			*/
 		}
 		
 		if(selection.getType() == EnumType.rowMulti){
+			/*
 			opStr = "Split " + getSelectedRows(selection);
 			closure = "";
 			AddItem(oplist, opStr, EnumPredict.MultiRowSplitBasic, closure);
+			*/
 		}
 		
 		if(selection.getType() == EnumType.colSingle){
-			opStr = "Split " + columnhead[selection.getSelectedColumn()];
-			closure = "";
-			AddItem(oplist, opStr, EnumPredict.SingleColumnSplitBasic, closure);
-			
 			List<List<String>> data = new ArrayList<List<String>>();
 			
 			//put all word in data array
@@ -56,23 +54,27 @@ public class SplitSuggestion extends Suggestion{
 			while(it.hasNext()){
 				String word = it.next();
 				opStr = "Split on " + word;
-				closure = "";
-				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, closure);
+				Parameters p = getParameter("delete", false, null, 
+						null, null, null);
+				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, p);
 				
 				opStr = "Split after " + word;
-				closure = "";
-				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, closure);
+				p = getParameter("delete", false, null, 
+						null, null, null);
+				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, p);
 				
 				opStr = "Split before " + word;
-				closure = "";
-				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, closure);
+				p = getParameter("delete", false, null, 
+						null, null, null);
+				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, p);
 			}
 		}
 		
 		if(selection.getType() == EnumType.colMulti){
 			opStr = "Split " + getSelectedColumns(selection, columnhead);
-			closure = "";
-			AddItem(oplist, opStr, EnumPredict.MultiColumnSplitBasic, closure);
+			Parameters p = getParameter("delete", false, null, 
+					null, null, null);
+			AddItem(oplist, opStr, EnumPredict.MultiColumnSplitBasic, p);
 		}
 		
 		return oplist;

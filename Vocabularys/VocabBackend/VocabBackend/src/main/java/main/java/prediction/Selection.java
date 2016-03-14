@@ -1,8 +1,5 @@
 package main.java.prediction;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Selection {
 	EnumType type;
 	Integer selectedRow = 0;

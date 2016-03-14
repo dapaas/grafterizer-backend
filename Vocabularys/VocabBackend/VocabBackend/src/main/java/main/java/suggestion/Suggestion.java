@@ -9,19 +9,28 @@ import main.java.prediction.Selection;
 
 public abstract class Suggestion {
 	
+	public class Parameters{
+		String operation;
+		Boolean isEmpty;
+		String relatedColumnHead;
+		String cellData;
+		Integer [] rows;
+		Integer [] columns;
+	}
+	
 	public class SuggestionItem{
 		public String content;
 		public EnumPredict predictType;
-		public String closureCode;
+		public Parameters parameters;
 	}
 	
 	abstract List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead);
 	
-	void AddItem(List<SuggestionItem> l, String content, EnumPredict e, String closure){
+	void AddItem(List<SuggestionItem> l, String content, EnumPredict e, Parameters p){
 		SuggestionItem item = new SuggestionItem();
 		item.content = content;
 		item.predictType = e;
-		item.closureCode = closure;
+		item.parameters = p;
 		l.add(item);
 	}
 	
@@ -62,11 +71,11 @@ public abstract class Suggestion {
 		String columns = "";
 		
 		for(int i = 0; i < listcolumns.length - 1; i++){
-			columns += listcolumns[i];
+			columns += columnhead[i];
 			columns += ",";
 		}
 		
-		columns += listcolumns[listcolumns.length - 1];
+		columns += columnhead[listcolumns.length - 1];
 		
 		return columns;
 	}
@@ -84,4 +93,16 @@ public abstract class Suggestion {
 		return true;
 	}
 	
+	Parameters getParameter(String operation, Boolean isEmpty, String relatedColumnHead
+			, String cellData, Integer [] columns, Integer [] rows){
+		Parameters p = new Parameters();
+		p.operation = operation;
+		p.isEmpty = isEmpty;
+		p.relatedColumnHead = relatedColumnHead;
+		p.cellData = cellData;
+		p.columns = columns;
+		p.rows = rows;
+		
+		return p;
+	}
 }

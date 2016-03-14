@@ -19,6 +19,7 @@ public class OtherSuggestion extends Suggestion {
 		return null;
 	}
 	
+	/*
 	private List<SuggestionItem> SuggestedByEmail(String [] data){
 		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
 		Pattern pattern = Pattern.compile("//^(//w)+(//.//w+)*@(//w)+((//.//w+)+)$//");
@@ -42,5 +43,5 @@ public class OtherSuggestion extends Suggestion {
 		
 		return oplist;
 	}
-
+	*/
 }

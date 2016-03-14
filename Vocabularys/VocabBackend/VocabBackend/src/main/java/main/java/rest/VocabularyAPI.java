@@ -3,7 +3,6 @@ package main.java.rest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -389,11 +388,11 @@ public class VocabularyAPI {
 		"type" : "SingleColumnCopyBasic",
 	}
 	*/
-	@Path("/parse")
+	@Path("/choose")
 	@POST
 	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response Parse(String data)  throws Exception{
+	public Response Choose(String data)  throws Exception{
 		Prediction prediction = new Prediction();
 		JSONObject jsonObject = new JSONObject();
 		
@@ -654,7 +653,7 @@ public class VocabularyAPI {
 			JSONObject objectTmp = new JSONObject();
 			objectTmp.put("value", p.getStrOp());
 			objectTmp.put("type", p.getEnumpredict());
-			objectTmp.put("closure", p.getStrClosure());
+			objectTmp.put("closure", p.getPara());
 			array.put(objectTmp);
 		}
 		

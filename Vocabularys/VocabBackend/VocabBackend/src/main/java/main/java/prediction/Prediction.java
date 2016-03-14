@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import main.java.suggestion.Suggestion.Parameters;
 import main.java.suggestion.Suggestion.SuggestionItem;
 import main.java.suggestion.SuggestionMgr;
 
@@ -16,8 +17,14 @@ public class Prediction {
 		String strOp;
 		Double probability;
 		EnumPredict enumpredict;
-		String strClosure;
+		Parameters para;
 		
+		public Parameters getPara() {
+			return para;
+		}
+		public void setPara(Parameters para) {
+			this.para = para;
+		}
 		public EnumPredict getEnumpredict() {
 			return enumpredict;
 		}
@@ -35,12 +42,6 @@ public class Prediction {
 		}
 		public void setProbability(Double probability) {
 			this.probability = probability;
-		}
-		public String getStrClosure() {
-			return strClosure;
-		}
-		public void setStrClosure(String strClosure) {
-			this.strClosure = strClosure;
 		}
 	}
 
@@ -96,14 +97,14 @@ public class Prediction {
 			
 			while(it.hasNext()){
 				SuggestionItem item = it.next();
-				AddPrediction(item.content, item.predictType, item.closureCode);
+				AddPrediction(item.content, item.predictType, item.parameters);
 			}
 		}
 		
 		return suggestionList;
 	}
 	
-	private Boolean AddPrediction(String opstr, EnumPredict e, String closure){
+	private Boolean AddPrediction(String opstr, EnumPredict e, Parameters para){
 		Boolean insert = false;
 		Double probability = 0.0;
 		
@@ -111,7 +112,7 @@ public class Prediction {
 		p.setProbability(probability);
 		p.setStrOp(opstr);
 		p.setEnumpredict(e);
-		p.setStrClosure(closure);
+		p.setPara(para);
 		
 		probability = ProbabilityFile.getProbability(e).doubleValue();
 		

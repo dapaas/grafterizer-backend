@@ -57,7 +57,7 @@ public class ProbabilityFile {
             	value = iValue.toString();
             	stmt.execute("update probability set value = '" + value + "' where key_id = '" + ep + "'");
 			}
-			conn.close();
+			closeConnection(conn);
 		}catch(Exception e){
 		}
 		

@@ -5,7 +5,6 @@ import java.util.List;
 
 import main.java.prediction.EnumPredict;
 import main.java.prediction.EnumType;
-import main.java.prediction.ProbabilityFile;
 import main.java.prediction.Selection;
 
 public class DeleteSuggestion extends Suggestion{
@@ -21,54 +20,53 @@ public class DeleteSuggestion extends Suggestion{
 			//delete empty rows
 			if(isRowEmpty(selectedRowData, selection.getSelectedRow())){
 				opStr = "Delete empty rows ";
-				String closure = "";
-				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteEmpty, closure);
+				Parameters p = getParameter("delete", true, null, 
+						null, null, null);
+				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteEmpty, p);
 			}
 			
-			//delete rows where column1 = "data in column1"
+			//delete rows where <column head> = <cell data>
 			while(index < columnhead.length){
 				opStr = "Delete rows where " + columnhead[index] + " = " + selectedRowData[index];
-				String closure = "";
-				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteBasic, closure);
+				Parameters p = getParameter("delete", false, columnhead[index], 
+						selectedRowData[index], null, null);
+				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteBasic, p);
 				index++;
 			}
 		}
 		
-		JSONARRY{
-			text: merge rows 1,2
-			key: 
-			
-			
-		}
-		
-		//delete rows 1,2
+		//delete rows <row index 1>, <row index 2>
 		if(selection.getType() == EnumType.rowMulti){
 			
 			opStr = "Delete rows " + getSelectedRows(selection);
-			String closure = "";
-			AddItem(oplist, opStr, EnumPredict.MultiRowDeleteBasic, closure);
+			Parameters p = getParameter("delete", false, null, 
+					null, selection.getSelectedRows(), null);
+			AddItem(oplist, opStr, EnumPredict.MultiRowDeleteBasic, p);
 		}
 		
-		//delete column1
+		//delete <column head>
 		if(selection.getType() == EnumType.colSingle){
 			opStr = "Delete " + columnhead[selection.getSelectedColumn()];
-			String closure = "";
-			AddItem(oplist, opStr, EnumPredict.SingleColumnDeleteBasic, closure);
+			Parameters p = getParameter("delete", false, columnhead[selection.getSelectedColumn()], 
+					null, null, null);
+			AddItem(oplist, opStr, EnumPredict.SingleColumnDeleteBasic, p);
 		}
 		
-		//delete column1,column2
+		//delete <column index 1>, <column index 2>
 		if(selection.getType() == EnumType.colMulti){
 			
 			opStr = "Delete " + getSelectedColumns(selection, columnhead);
-			String closure = "";
-			AddItem(oplist, opStr, EnumPredict.MultiColumnDeleteBasic, closure);
+			Parameters p = getParameter("delete", false, null, 
+					null, null, selection.getSelectedColumns());
+			AddItem(oplist, opStr, EnumPredict.MultiColumnDeleteBasic, p);
 		}
 		
-		//delete rows where column1 contains selectedstring
+		/*
+		//delete rows where column1 contains selected string
 		if(selection.getType() == EnumType.Text){
 			opStr = "Delete rows where " + columnhead[selection.getTextcorY()] + " contains " + selection.getSelectedText();
 		}
-		
+		*/
 		return oplist;
 	}
 }

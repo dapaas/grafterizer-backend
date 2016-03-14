@@ -5,7 +5,6 @@ import java.util.List;
 
 import main.java.prediction.EnumPredict;
 import main.java.prediction.EnumType;
-import main.java.prediction.ProbabilityFile;
 import main.java.prediction.Selection;
 
 public class CopySuggestion extends Suggestion {
@@ -16,17 +15,22 @@ public class CopySuggestion extends Suggestion {
 		
 		String opStr = "";
 		if(selection.getType() == EnumType.colSingle){
-			opStr = "Copy from " + columnhead[selection.getSelectedColumn()];
-			//copy 
-			String closure = ClosureCode.copyRowSimple;
-			AddItem(oplist, opStr, EnumPredict.SingleColumnCopyBasic, closure);
+			opStr = "Extract from " + columnhead[selection.getSelectedColumn()];
+			//Extract from <column head>
+			//eg: extract from telephone
+			Parameters p = getParameter("extract", false, columnhead[selection.getSelectedColumn()], 
+					null, null, null);
+			
+			AddItem(oplist, opStr, EnumPredict.SingleColumnCopyBasic, p);
 		}
 		
 		if(selection.getType() == EnumType.colMulti){
-			opStr = "Copy from " + getSelectedColumns(selection, columnhead);
-			//copy 
-			String closure = ClosureCode.copyColSimple;
-			AddItem(oplist, opStr, EnumPredict.MultiColumnCopyBasic, closure);
+			opStr = "Extract from " + getSelectedColumns(selection, columnhead);
+			//Extract from <column index>, <column index>...
+			//eg: extract from column 1,2
+			Parameters p = getParameter("extract", false, columnhead[selection.getSelectedColumn()], 
+					null, null, selection.getSelectedColumns());
+			AddItem(oplist, opStr, EnumPredict.MultiColumnCopyBasic, p);
 		}
 		
 		return oplist;

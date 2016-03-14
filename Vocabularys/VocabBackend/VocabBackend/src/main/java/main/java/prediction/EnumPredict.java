@@ -36,5 +36,7 @@ public enum EnumPredict {
 	SingleRowMergeBasic,
 	MultiRowMergeBasic,
 	SingleColumnMergeBasic,
-	MultiColumnMergeBasic
+	MultiColumnMergeBasic,
+	
+	SingleColumnRename
 }
