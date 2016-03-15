@@ -80,6 +80,24 @@ public class PredictionTest {
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
 			System.out.println(p.getStrOp());
+			System.out.println(p.getPara().cellData);
+			System.out.println(p.getPara().operation);
+			System.out.println(p.getPara().relatedColumnHead);
+			System.out.println(p.getPara().isEmpty);
+			
+			Integer [] columns = p.getPara().columns;
+			if(columns != null){
+				for(int i = 0; i < columns.length; i++){
+					System.out.println(columns[i]);
+				}
+			}
+			
+			Integer [] rows = p.getPara().rows;
+			if(rows != null){
+				for(int i = 0; i < rows.length; i++){
+					System.out.println(rows[i]);
+				}
+			}
 		}
 		
 		System.out.println("Test 2------------------------------------------");
@@ -91,6 +109,24 @@ public class PredictionTest {
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
 			System.out.println(p.getStrOp());
+			System.out.println(p.getPara().cellData);
+			System.out.println(p.getPara().operation);
+			System.out.println(p.getPara().relatedColumnHead);
+			System.out.println(p.getPara().isEmpty);
+			
+			Integer [] columns = p.getPara().columns;
+			if(columns != null){
+				for(int i = 0; i < columns.length; i++){
+					System.out.println(columns[i]);
+				}
+			}
+			
+			Integer [] rows = p.getPara().rows;
+			if(rows != null){
+				for(int i = 0; i < rows.length; i++){
+					System.out.println(rows[i]);
+				}
+			}
 		}
 				
 		System.out.println("Test 3------------------------------------------");
@@ -104,6 +140,24 @@ public class PredictionTest {
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
 			System.out.println(p.getStrOp());
+			System.out.println(p.getPara().cellData);
+			System.out.println(p.getPara().operation);
+			System.out.println(p.getPara().relatedColumnHead);
+			System.out.println(p.getPara().isEmpty);
+			
+			Integer [] columns = p.getPara().columns;
+			if(columns != null){
+				for(int i = 0; i < columns.length; i++){
+					System.out.println(columns[i]);
+				}
+			}
+			
+			Integer [] rows = p.getPara().rows;
+			if(rows != null){
+				for(int i = 0; i < rows.length; i++){
+					System.out.println(rows[i]);
+				}
+			}
 		}
 		
 		System.out.println("Test 4------------------------------------------");
@@ -116,6 +170,24 @@ public class PredictionTest {
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
 			System.out.println(p.getStrOp());
+			System.out.println(p.getPara().cellData);
+			System.out.println(p.getPara().operation);
+			System.out.println(p.getPara().relatedColumnHead);
+			System.out.println(p.getPara().isEmpty);
+			
+			Integer [] columns = p.getPara().columns;
+			if(columns != null){
+				for(int i = 0; i < columns.length; i++){
+					System.out.println(columns[i]);
+				}
+			}
+			
+			Integer [] rows = p.getPara().rows;
+			if(rows != null){
+				for(int i = 0; i < rows.length; i++){
+					System.out.println(rows[i]);
+				}
+			}
 		}
 		
 		System.out.println("Test 5------------------------------------------");
@@ -129,6 +201,24 @@ public class PredictionTest {
 		while(it.hasNext()){
 			PredictionProbability p = it.next();
 			System.out.println(p.getStrOp());
+			System.out.println(p.getPara().cellData);
+			System.out.println(p.getPara().operation);
+			System.out.println(p.getPara().relatedColumnHead);
+			System.out.println(p.getPara().isEmpty);
+			
+			Integer [] columns = p.getPara().columns;
+			if(columns != null){
+				for(int i = 0; i < columns.length; i++){
+					System.out.println(columns[i]);
+				}
+			}
+			
+			Integer [] rows = p.getPara().rows;
+			if(rows != null){
+				for(int i = 0; i < rows.length; i++){
+					System.out.println(rows[i]);
+				}
+			}
 		}
 	}
 

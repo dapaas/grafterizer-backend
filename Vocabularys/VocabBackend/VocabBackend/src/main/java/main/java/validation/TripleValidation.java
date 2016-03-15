@@ -150,8 +150,8 @@ public class TripleValidation {
 		System.out.print(model.toString());
 		Resource subject = st.getSubject();
 		Property predicate = st.getPredicate();
-		Property type = model.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-		Statement s = model.getProperty(subject.asResource(), type);
+		//Property type = model.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+		//Statement s = model.getProperty(subject.asResource(), type);
 		
 		if(predicate.toString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
 		{
@@ -251,6 +251,7 @@ public class TripleValidation {
 	
 	
 	//get a list of rdfs:domain for a property
+	@SuppressWarnings("unchecked")
 	private Iterator<String> getDomainList(OntModel ontModel, Property p){
 		List<String> list= new ArrayList<String>();
   
@@ -265,6 +266,7 @@ public class TripleValidation {
 	}
 	
 	//get a list of rdfs:range for a property
+	@SuppressWarnings("unchecked")
 	private Iterator<String> getRangeList(OntModel ontModel, Property p){
 		List<String> list= new ArrayList<String>();
 

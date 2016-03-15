@@ -44,12 +44,12 @@ public class FillSuggestion extends Suggestion{
 			while(index < columnhead.length){
 				p = getParameter("fill", false, columnhead[index], 
 						selectedRowData[index], null, null);
-				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from above";
+				opStr = "Fill rows where " + "\"" + columnhead[index] + "\"" + " = " + "\"" + selectedRowData[index] + "\"" + " with value from above";
 				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll, p);
 				p = getParameter("fill", false, columnhead[index], 
 						selectedRowData[index], null, null);
-				opStr = "Fill rows where " + columnhead[index] + " = " + selectedRowData[index] + " with value from below";
-				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll, p);
+				opStr = "Fill rows where " + "\"" + columnhead[index] + "\"" + " = " + "\"" + selectedRowData[index] + "\"" + " with value from below";
+				AddItem(oplist, opStr, EnumPredict.SingleRowFillAll, p); 
 				index++;
 			}
 		}
@@ -70,16 +70,16 @@ public class FillSuggestion extends Suggestion{
 		if(selection.getType() == EnumType.colSingle){
 			Parameters p = getParameter("fill", false, columnhead[selection.getSelectedColumn()], 
 					null, null, null);
-			opStr = "Fill " + columnhead[selection.getSelectedColumn()] + " with value from left";
+			opStr = "Fill " + "\"" + columnhead[selection.getSelectedColumn()] + "\"" + " with value from left";
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic, p);
 			
 			p = getParameter("fill", false, columnhead[selection.getSelectedColumn()], 
 					null, null, null);
-			opStr = "Fill " + columnhead[selection.getSelectedColumn()] + " with value from right";
+			opStr = "Fill " + "\"" + columnhead[selection.getSelectedColumn()] + "\"" + " with value from right";
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFillBasic, p);
 		}
 		
-		// fill <column index 1>, <column index 2> with value from ...
+		// fill <column head 1>, <column head 2> with value from ...
 		if(selection.getType() == EnumType.colMulti){
 			Parameters p = getParameter("fill", false, null, 
 					null, null, selection.getSelectedColumns());

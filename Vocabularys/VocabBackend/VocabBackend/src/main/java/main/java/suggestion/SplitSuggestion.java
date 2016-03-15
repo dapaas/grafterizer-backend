@@ -53,17 +53,17 @@ public class SplitSuggestion extends Suggestion{
 			Iterator<String> it = commenWord.iterator();
 			while(it.hasNext()){
 				String word = it.next();
-				opStr = "Split on " + word;
+				opStr = "Split on " + "\"" + word + "\"";
 				Parameters p = getParameter("delete", false, null, 
 						null, null, null);
 				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, p);
 				
-				opStr = "Split after " + word;
+				opStr = "Split after " + "\"" + word + "\"";
 				p = getParameter("delete", false, null, 
 						null, null, null);
 				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, p);
 				
-				opStr = "Split before " + word;
+				opStr = "Split before " + "\"" + word + "\"";
 				p = getParameter("delete", false, null, 
 						null, null, null);
 				AddItem(oplist, opStr, EnumPredict.SingleColumnSplitCommenWord, p);

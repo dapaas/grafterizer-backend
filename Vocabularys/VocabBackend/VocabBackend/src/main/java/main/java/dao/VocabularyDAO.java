@@ -806,6 +806,7 @@ public class VocabularyDAO {
 
 	static int teststatistic = 0;
 	
+	/*
 	// test code: get all data from dataset
 	private void testDataset(Dataset dataset) {
 		dataset.begin(ReadWrite.READ);
@@ -844,6 +845,7 @@ public class VocabularyDAO {
 		}
 	}
 
+	*/
 	// get file extension
 	private String getFileExtension(String fileName) {
 		Map<String, String> extentionmap = new HashMap<String, String>();

@@ -24,7 +24,7 @@ public class FoldSuggestion extends Suggestion{
 			//fold <column head> using <column index> as a key.
 			int index = 0;
 			while(index < columnhead.length){
-				opStr = "Fold " + columnhead[index] + " using " + selection.getSelectedRow() + " as a key";
+				opStr = "Fold " + "\"" + columnhead[index] + "\"" + " using " + selection.getSelectedRow() + " as a key";
 				p = getParameter("fold", false, columnhead[index], 
 						null, selection.getSelectedRows(), null);
 				AddItem(oplist, opStr, EnumPredict.SingleRowFoldUsingColumn, p);
@@ -41,7 +41,7 @@ public class FoldSuggestion extends Suggestion{
 			int index = 0;
 			// fold <column head> using <row index 1>, <row index 2>... as a key
 			while(index < columnhead.length){
-				opStr = "Fold " + columnhead[index] + " using " + getSelectedRows(selection) + " as a key";
+				opStr = "Fold " + "\"" + columnhead[index] + "\"" + " using " + getSelectedRows(selection) + " as a key";
 				p = getParameter("fold", false, columnhead[index], 
 						null, selection.getSelectedRows(), null);
 				AddItem(oplist, opStr, EnumPredict.MultiRowFoldUsingColumn, p);
@@ -52,13 +52,13 @@ public class FoldSuggestion extends Suggestion{
 		
 		if(selection.getType() == EnumType.colSingle){
 			// fold <column head> using header as a key.
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using header as a key";
+			opStr = "Fold " + "\"" + columnhead[selection.getSelectedColumn()] + "\"" + " using header as a key";
 			Parameters p = getParameter("fold", false, columnhead[selection.getSelectedColumn()], 
 					null, null, null);
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFoldBasic, p);
 			
 			// fold <column head> using 1 as a key.
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using 1 as a key";
+			opStr = "Fold " + "\"" + columnhead[selection.getSelectedColumn()] + "\"" + " using 1 as a key";
 			Integer [] array = {1};
 			p = getParameter("fold", false, columnhead[selection.getSelectedColumn()], 
 					null, array, null);
@@ -68,7 +68,7 @@ public class FoldSuggestion extends Suggestion{
 			Integer [] twoRowArray = {1, 2};
 			p = getParameter("fold", false, columnhead[selection.getSelectedColumn()], 
 					null, twoRowArray, null);
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using 1,2 as keys";
+			opStr = "Fold " + "\"" + columnhead[selection.getSelectedColumn()] + "\"" + " using 1,2 as keys";
 			
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFoldBasic, p);
 			
@@ -76,7 +76,7 @@ public class FoldSuggestion extends Suggestion{
 			Integer [] threeRowArray = {1, 2, 3};
 			p = getParameter("fold", false, columnhead[selection.getSelectedColumn()], 
 					null, threeRowArray, null);
-			opStr = "Fold " + columnhead[selection.getSelectedColumn()] + " using 1,2,3 as keys";
+			opStr = "Fold " + "\"" + columnhead[selection.getSelectedColumn()] + "\"" + " using 1,2,3 as keys";
 			
 			AddItem(oplist, opStr, EnumPredict.SingleColumnFoldBasic, p);
 		}

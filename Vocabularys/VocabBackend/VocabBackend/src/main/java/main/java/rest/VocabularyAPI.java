@@ -23,6 +23,7 @@ import main.java.prediction.EnumType;
 import main.java.prediction.Prediction;
 import main.java.prediction.Selection;
 import main.java.prediction.Prediction.PredictionProbability;
+import main.java.suggestion.Suggestion.Parameters;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
@@ -388,7 +389,7 @@ public class VocabularyAPI {
 		"type" : "SingleColumnCopyBasic",
 	}
 	*/
-	@Path("/choose")
+	@Path("/chooseItem")
 	@POST
 	@Consumes({MediaType.APPLICATION_FORM_URLENCODED,MediaType.APPLICATION_JSON})
 	@Produces(MediaType.APPLICATION_JSON)
@@ -412,11 +413,13 @@ public class VocabularyAPI {
 	}
 	
 	/*
+	consume
 	{
 		"selectedRow" : "1",
 		"header" : ["id", "name", "address"],
 		"data" : ["1", "xiangliy", "Sogn"]
 	}
+	
 	*/
 	@Path("/singleRowPrediction")
 	@POST
@@ -641,8 +644,28 @@ public class VocabularyAPI {
 	    return jsonArray;
 	}
 	
+	
+	/*
+	produce
+	{
+		value: <prediction text>
+		type: <a key to describe this kind of prediction>
+		parameter: 
+		{
+			isEmpty: <true or false, this operation is for empty row or column?>
+			operation: <delete?split?extract?...>
+			relatedColumnHead: <column head used in the prediction text>
+			cellData: <cell data used in cellData>
+			rows: {
+				<a list of related row index>
+			}
+			columns: {
+				<a list of related column index>
+			}
+		}
+	}
+	*/
 	JSONObject processPrediction(String[] curRowdata, String [] curColumnData, Selection s, String [] header) throws JSONException{
-		
 		JSONObject retObject = new JSONObject();
 		JSONArray array = new JSONArray();
 		Prediction prediction = new Prediction();
@@ -653,7 +676,32 @@ public class VocabularyAPI {
 			JSONObject objectTmp = new JSONObject();
 			objectTmp.put("value", p.getStrOp());
 			objectTmp.put("type", p.getEnumpredict());
-			objectTmp.put("closure", p.getPara());
+			objectTmp.put("parameter", p.getPara());
+			Parameters para = p.getPara();
+	
+			objectTmp.put("isEmpty", para.isEmpty);
+			objectTmp.put("operation", para.operation);
+			objectTmp.put("relatedColumnHead", para.relatedColumnHead);
+			objectTmp.put("cellData", para.cellData);
+			
+			JSONArray rowArray = new JSONArray();
+			Integer [] rows = para.rows;
+			if (rows != null) {
+				for(int row : rows){
+					rowArray.put(row);
+				}
+			}
+			
+			JSONArray columnArray = new JSONArray();
+			Integer [] columns = para.columns;
+			if (rows != null) {
+				for(int column : columns){
+					columnArray.put(column);
+				}
+			}
+			
+			objectTmp.put("rows", rowArray);
+			objectTmp.put("columns", columnArray);
 			array.put(objectTmp);
 		}
 		

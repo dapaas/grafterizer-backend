@@ -10,12 +10,12 @@ import main.java.prediction.Selection;
 public abstract class Suggestion {
 	
 	public class Parameters{
-		String operation;
-		Boolean isEmpty;
-		String relatedColumnHead;
-		String cellData;
-		Integer [] rows;
-		Integer [] columns;
+		public String operation;
+		public Boolean isEmpty;
+		public String relatedColumnHead;
+		public String cellData;
+		public Integer [] rows;
+		public Integer [] columns;
 	}
 	
 	public class SuggestionItem{
@@ -71,11 +71,11 @@ public abstract class Suggestion {
 		String columns = "";
 		
 		for(int i = 0; i < listcolumns.length - 1; i++){
-			columns += columnhead[i];
+			columns += "\"" + columnhead[i] + "\"";
 			columns += ",";
 		}
 		
-		columns += columnhead[listcolumns.length - 1];
+		columns += "\"" + columnhead[listcolumns.length - 1] + "\"";
 		
 		return columns;
 	}

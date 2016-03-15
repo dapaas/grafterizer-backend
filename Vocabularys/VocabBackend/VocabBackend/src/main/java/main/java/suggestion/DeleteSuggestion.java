@@ -19,7 +19,7 @@ public class DeleteSuggestion extends Suggestion{
 			
 			//delete empty rows
 			if(isRowEmpty(selectedRowData, selection.getSelectedRow())){
-				opStr = "Delete empty rows ";
+				opStr = "Delete empty rows.";
 				Parameters p = getParameter("delete", true, null, 
 						null, null, null);
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteEmpty, p);
@@ -27,7 +27,7 @@ public class DeleteSuggestion extends Suggestion{
 			
 			//delete rows where <column head> = <cell data>
 			while(index < columnhead.length){
-				opStr = "Delete rows where " + columnhead[index] + " = " + selectedRowData[index];
+				opStr = "Delete rows where " + "\"" + columnhead[index] + "\"" + " = " + "\"" + selectedRowData[index] + "\"";
 				Parameters p = getParameter("delete", false, columnhead[index], 
 						selectedRowData[index], null, null);
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteBasic, p);
@@ -46,13 +46,13 @@ public class DeleteSuggestion extends Suggestion{
 		
 		//delete <column head>
 		if(selection.getType() == EnumType.colSingle){
-			opStr = "Delete " + columnhead[selection.getSelectedColumn()];
+			opStr = "Delete " + "\"" + columnhead[selection.getSelectedColumn()] + "\"";
 			Parameters p = getParameter("delete", false, columnhead[selection.getSelectedColumn()], 
 					null, null, null);
 			AddItem(oplist, opStr, EnumPredict.SingleColumnDeleteBasic, p);
 		}
 		
-		//delete <column index 1>, <column index 2>
+		//delete <column head 1>, <column head 2>
 		if(selection.getType() == EnumType.colMulti){
 			
 			opStr = "Delete " + getSelectedColumns(selection, columnhead);

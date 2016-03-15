@@ -15,7 +15,7 @@ public class RenameSuggestion extends Suggestion{
 		String opStr = "";
 		//rename <column head>
 		if(selection.getType() == EnumType.colSingle){
-			opStr = "Rename " + columnhead[selection.getSelectedColumn()];
+			opStr = "Rename " + "\"" + columnhead[selection.getSelectedColumn()] + "\"";
 			Parameters p = getParameter("Rename", false, columnhead[selection.getSelectedColumn()], 
 					null, null, null);
 			AddItem(oplist, opStr, EnumPredict.SingleColumnRename, p);

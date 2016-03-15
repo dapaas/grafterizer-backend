@@ -15,7 +15,7 @@ public class CopySuggestion extends Suggestion {
 		
 		String opStr = "";
 		if(selection.getType() == EnumType.colSingle){
-			opStr = "Extract from " + columnhead[selection.getSelectedColumn()];
+			opStr = "Extract from " + "\"" + columnhead[selection.getSelectedColumn()] + "\"";
 			//Extract from <column head>
 			//eg: extract from telephone
 			Parameters p = getParameter("extract", false, columnhead[selection.getSelectedColumn()], 

@@ -1,13 +1,10 @@
 package main.java.suggestion;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+//import java.util.regex.Matcher;
+//import java.util.regex.Pattern;
 
-import main.java.prediction.EnumPredict;
 import main.java.prediction.Selection;
-import main.java.suggestion.Suggestion.SuggestionItem;
 
 public class OtherSuggestion extends Suggestion {
 
