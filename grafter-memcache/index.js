@@ -121,7 +121,9 @@ app.use(compression());
 app.use(morgan('short'));
 
 // Enable CORS for every request
-app.use(cors());
+app.use(cors(function(req, callback) {
+  callback(null, {origin: true, credentials: true});
+}));
 
 /**
  * This is the main API method provided by this component.
