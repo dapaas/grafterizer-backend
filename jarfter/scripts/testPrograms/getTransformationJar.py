@@ -17,8 +17,8 @@ if len(sys.argv) < 3:
 transform_uri = sys.argv[1]
 output_jar = sys.argv[2]
 
-#endpoint = "http://localhost:8088/jarfter/webresources/jarCreator"
-endpoint = "http://192.168.11.43:8080/jarfter/webresources/jarCreator"
+endpoint = "http://localhost:8080/jarfter/webresources/jarCreator"
+#endpoint = "http://192.168.11.43:8080/jarfter/webresources/jarCreator"
 
 
 headers = {}

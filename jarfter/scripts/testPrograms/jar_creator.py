@@ -20,7 +20,7 @@ input_clj = sys.argv[1]
 output_jar = sys.argv[2]
 
 #endpoint = "http://192.168.11.43:8080/jarfter/webresources/jarCreatorStandAlone"
-endpoint = "http://localhost:8088/jarfter/webresources/jarCreatorStandAlone"
+endpoint = "http://localhost:8080/jarfter/webresources/jarCreatorStandAlone"
 
 headers = {}
 #headers["Content-Length"]= "%d" % os.stat(input_clj).st_size

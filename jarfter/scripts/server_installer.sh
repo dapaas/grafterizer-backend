@@ -36,6 +36,7 @@ lein
 
 # Compile jarfter-template and rename the standalone jar 
 cd jarfter-template
+mvn deploy:deploy-file -Dfile=ww-geo-coords-1.0.jar -DgroupId=ww-geo-coords -DartifactId=ww-geo-coords -Dversion=1.0 -Dpackaging=jar -DlocalRepositoryPath=maven_repository -Durl=file:maven_repository
 lein uberjar
 cp target/jarfter-0.1.0-SNAPSHOT-standalone.jar jarfter.jar
 cd -
@@ -43,12 +44,12 @@ cd -
 # Copy clj2jar to available location:
 sudo cp clj2jar.sh /usr/local/bin/
 sudo mkdir -p /usr/local/var/
-
 sudo cp -r jarfter-template /usr/local/var/jarfter-template
 # The jarfter.jar is now available as /usr/local/var/jarfter-template/jarfter.jar
 
 # Compile warfter-template and rename the standalone war
 cd warfter-ws/warfter-ws
+mvn deploy:deploy-file -Dfile=ww-geo-coords-1.0.jar -DgroupId=ww-geo-coords -DartifactId=ww-geo-coords -Dversion=1.0 -Dpackaging=jar -DlocalRepositoryPath=maven_repository -Durl=file:maven_repository
 lein ring uberwar
 cp target/warfter-ws-0.1.0-SNAPSHOT-standalone.war warfter-ws.war
 cd -
