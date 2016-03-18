@@ -87,6 +87,18 @@ if (!oauth2ClientSecret) console.error('OAUTH2_CLIENT_SECRET must be defined') &
 const datagraftUri = process.env.DATAGRAFT_URI;
 if (!datagraftUri) console.error('DATAGRAFT_URI must be defined') & process.exit(1);
 
+// Graftwerk HTTP endpoint URI
+// This endpoint could be the Graftwerk loadbalancer
+const graftwerkUri = process.env.GRAFTWERK_URI;
+if (!graftwerkUri) console.error('GRAFTWERK_URI must be defined') & process.exit(1);
+
+// The Graftwerk cache component is a cache allowing to serve requests faster
+// when they have been already executed
+// It is not embedded in this server as this is stateless while the cache is not
+// Please not that the cache is also a Single Point of Failure in its current version
+const graftwerkCacheUri = process.env.GRAFTWERK_CACHE_URI;
+if (!graftwerkCacheUri) console.error('GRAFTWERK_CACHE_URI must be defined') & process.exit(1);
+
 // OAuth2 authentication server site, default to datagraftUri
 const oauth2Site = process.env.OAUTH2_SITE || datagraftUri;
 
@@ -129,8 +141,16 @@ require('./authentication')(app, {
   publicCallbackServer
 });
 
+// Simple status page
 app.get('/', (req, res) => {
-  res.send('lol');
+  res.send('ok');
+});
+
+// Grafterizer transformation computing
+require('./computing')(app, {
+  datagraftUri,
+  graftwerkUri,
+  graftwerkCacheUri
 });
 
 // All the remaining requests are proxied to DataGraft,

@@ -6,6 +6,8 @@
  * It's faster and simpler.
  */
 
+'use strict';
+
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Logging component for error and info messages

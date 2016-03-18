@@ -113,7 +113,7 @@ module.exports = (app, settings) => {
     // Grafterizer redirect to the OAuth2 Grant page
     if (!req.oauthSession || !req.oauthSession.token) {
       // return res.redirect(authorizationUri);
-      return res.status(401).send();
+      return res.status(401).send('Error 401: You are not authentified.');
     }
 
     // Retrieve the token from the session store
