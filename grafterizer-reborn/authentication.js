@@ -113,13 +113,13 @@ module.exports = (app, settings) => {
     // Grafterizer redirect to the OAuth2 Grant page
     if (!req.oauthSession || !req.oauthSession.token) {
       // return res.redirect(authorizationUri);
-      return res.status(401).send('Error 401: You are not authentified.');
+      return res.status(401).send('Error 401: You are not authenticated.');
     }
 
     // Retrieve the token from the session store
     let token = reanimeToken(req.oauthSession.token);
 
-    // If the token hasn't expired, we can immediatly proceed
+    // If the token hasn't expired, we can immediately proceed
     // if (!token.expired() && Math.random() > 0.5) return next();
     if (!token.expired()) return next();
 

@@ -88,6 +88,9 @@ const getAttachmentInfos = (response) => {
   };
 };
 
+const downloadErrorText = '<h3>An error has occured.</h3>' + '<p><code></pre>{{OUTPUT}}</pre></code></p>' +
+  '<p><a href="http://project.dapaas.eu/dapaas-contact-us">Please contact us.</a></p>';
+
 module.exports = (app, settings) => {
 
   // Return a request to download the raw distribution
@@ -128,10 +131,8 @@ module.exports = (app, settings) => {
       }
 
       // We can still log the problem though
-      log.captureMessage('Unable to download the raw data distribution', {
-        extra: {
-          error: err
-        }
+      logging.error('Unable to download the raw data distribution', {
+        error: err
       });
     });
   };
@@ -144,7 +145,12 @@ module.exports = (app, settings) => {
   // less memory, and it is faster as the file transfers are reduced.
   // The cons are a sligthly more complex codebase and a small hack
   // (see the warning)
-  const executeTransformation = (req, res, clojure, type) => {
+  const executeTransformation = (req, res, clojure, type, acceptType, successCallback, errorCallback) => {
+    // 'pipe' is the default type
+    if (type !== 'graft') {
+      type = 'pipe';
+    }
+
     const stream = downloadRaw(req, res);
     if (!stream) return;
 
@@ -205,18 +211,26 @@ module.exports = (app, settings) => {
       // for long and slow queries as the client HTTP timeout may occur
       // long before Graftwerk returns the result.
 
-      const endpoint = (req.query.useCache || req.body.useCache) ?
+      const endpoint = (req.query.useCache || (req.body && req.body.useCache)) ?
         settings.graftwerkCacheUri : settings.graftwerkUri;
 
+      const headers = {
+        // /!\ This is mandatory to be able to send the file in a streaming mode
+        'transfer-encoding': 'chuncked',
+      };
+      
+      if (acceptType) {
+        headers.Accept = acceptType;
+      }
+
       // Querying Graftwerk
-      request.post({
+      const resultStream = request.post({
         url: endpoint + '/evaluate/pipe',
-        headers: {
-          // /!\ This is mandatory to be able to send the file in a streaming mode
-          'transfer-encoding': 'chuncked'
-        },
-        formData: formData
-      }).on('error', (err) => {
+        headers,
+        formData
+      });
+
+      resultStream.on('error', (err) => {
 
         // If an error occurs and we havn't received headers,
         // it means we should show the error message
@@ -227,12 +241,49 @@ module.exports = (app, settings) => {
         }
 
         // Otherwise we can just log it
-        log.captureMessage('Unable to transform the file using the original transformation', {
-          extra: {
-            error: err
-          }
+        logging.error('Unable to transform the file using the original transformation', {
+          error: err
         });
-      }).pipe(res);
+
+        stream.abort();
+      }).on('response', (response) => {
+
+        // If the response is non valid
+        if (!response || response.statusCode !== 200) {
+
+          // Fetch the response string
+          var outputError = concat({
+            encoding: 'string',
+          }, function(graftwerkOutput) {
+            log.error('Unable to transform the file', graftwerkOutput);
+
+            // Display the error, using the callback or the default system
+            if (errorCallback) {
+              errorCallback(graftwerkOutput);
+            } else {
+              res.status(500).json({error: graftwerkOutput});
+            }
+          });
+
+          resultStream.pipe(outputError);
+
+          log.captureMessage('The transformed data is invalid', {
+            extra: {
+              response: response ? response.statusCode : 'response empty'
+            }
+          });
+          return;
+        }
+
+        // Run the callback
+        if (successCallback) {
+          var filename = streamInfos.name.replace(/[^a-zA-Z0-9_\-]/g, '') + '-processed';
+          successCallback(resultStream, response, filename, type);
+        } else {
+          // Or just pipe to the default output by default
+          resultStream.pipe(res);
+        }
+      });
     });
   };
 
@@ -281,9 +332,64 @@ module.exports = (app, settings) => {
       return;
     }
 
-    // Load the transformation type from the request body
-    const type = req.body.transformationType === 'graft' ? 'graft' : 'pipe';
+    executeTransformation(req, res, clojure, req.body.transformationType);
+  });
 
-    executeTransformation(req, res, clojure, type);
+  // Execute and download the transformation on the distribution
+  // Unlike the other methods, the code is not sent by the client but fetched
+  // from DataGraft. To have a GET request with few parameters.
+  app.get('/transform/:distribution/:transformation', (req, res) => {
+
+    // Fetch the clojure code from DataGraft
+    request.get({
+      url: settings.datagraftUri + '/myassets/transformations/' +
+        encodeURIComponent(req.params.transformation) + '/configuration/code',
+      headers: {
+        Authorization: getAuthorization(req)
+      }
+    }, (error, response, clojure) => {
+      if (error) {
+        logging.error('Unable to load the transformation code', error);
+        res.status(500).json({error: 'Unable to load the transformation code'});
+        return;
+      }
+
+      executeTransformation(req, res, clojure, req.query.type,
+      (req.query.type === 'graft' ? 'application/n-triples' : 'application/csv'),
+      (stream, response, filename, type) => {
+
+        // Replace the headers to download a nice file
+        if (!req.query.useCache) {
+          delete response.headers['content-disposition'];
+          delete response.headers['content-type'];
+          delete response.headers.server;
+
+          if (type === 'graft') {
+            res.contentType('application/n-triples');
+            res.setHeader('content-disposition', 'attachment; filename=' + filename + '.nt');
+          } else {
+            res.contentType('text/csv');
+            res.setHeader('content-disposition', 'attachment; filename=' + filename + '.csv');
+          }
+        }
+
+        stream.pipe(res);
+      },
+
+      // Show the error in a slightly improved way
+      (message) => {
+        res.status(500);
+
+        if (!req.query.raw) {
+          res.send(downloadErrorText.replace('{{OUTPUT}}', escape(message)));
+        } else {
+          res.json({
+            error: message
+          });
+        }
+      });
+
+    });
+
   });
 };

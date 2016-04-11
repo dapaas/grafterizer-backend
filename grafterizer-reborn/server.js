@@ -154,10 +154,18 @@ require('./computing')(app, {
 });
 
 // All the remaining requests are proxied to DataGraft,
-// to use the DataGraft API while being authentified
+// to use the DataGraft API while being authenticated
 require('./datagraftProxy')(app, {
   datagraftUri
 });
+
+// At least one dependency throws errors that could be ignored
+// But by default it's better to crash
+if (process.env.IGNORE_UNCAUCH_EXCEPTIONS) {
+  process.on('uncaughtException', function(err) {
+    logging.error(err);
+  });
+}
 
 // Starting the HTTP server
 app.listen(serverPort, () => {
