@@ -4,6 +4,7 @@
  * Or the glue between Grafterizer, Graftwerk and DataGraft.
  */
 
+
 'use strict';
 
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
@@ -25,6 +26,18 @@ const mime = require('mime');
 
 // Parse content-disposition headers
 const contentDisposition = require('content-disposition');
+
+// Transform a stream to a string
+const concat = require('concat-stream');
+
+// Manipulate files in nodejs
+const fs = require('fs');
+
+// System constants to manipulate files
+const constants = require('constants');
+
+// Manage temporary files paths
+const temp = require('temp');
 
 // Initializing the jsonParser
 const jsonParser = bodyParser.json();
@@ -93,6 +106,21 @@ const downloadErrorText = '<h3>An error has occured.</h3>' + '<p><code></pre>{{O
 
 module.exports = (app, settings) => {
 
+  // Returns and display an error
+  const showAndLogError = (res, status, message, data) => {
+    // If the headers are already sent, it probably means the server has started to
+    // provide a message and it's better to just keep the same message instead of
+    // crashing trying to send already sent headers
+    if (!res.headersSent) {
+      res.status(status).json({
+        error: message,
+        data
+      });
+    }
+
+    logging.error(message, data);
+  };
+
   // Return a request to download the raw distribution
   // The stream can be transmitted directly to the client
   // or forwarded to Grafterizer
@@ -105,9 +133,7 @@ module.exports = (app, settings) => {
     // If somehow the distribution ID is not provided,
     // it's better to stop here
     if (!distribution) {
-      res.status(400).json({
-        error: 'The distribution ID parameter is missing'
-      });
+      showAndLogError(res, 400, 'The distribution ID is missing');
       return;
     }
 
@@ -121,19 +147,7 @@ module.exports = (app, settings) => {
         Authorization: getAuthorization(req)
       }
     }).on('error', function(err) {
-      // If the headers are already sent, it probably means the server has started to
-      // provide a message and it's better to just keep the same message instead of
-      // crashing trying to send already sent headers
-      if (!res.headersSent) {
-        res.status(500).json({
-          error: err
-        });
-      }
-
-      // We can still log the problem though
-      logging.error('Unable to download the raw data distribution', {
-        error: err
-      });
+      showAndLogError(res, 500, 'Unable to download the data distribution', err);
     });
   };
 
@@ -166,6 +180,21 @@ module.exports = (app, settings) => {
       // Load informations about the raw file
       const streamInfos = getAttachmentInfos(response);
 
+      var knownLength;
+      if (response.headers && response.headers['content-length']) {
+        knownLength = parseInt(response.headers['content-length']);
+      } else {
+        // /!\ beware of the wild constant /!\
+        // This is a hack to send the file and the pipeline in a streaming mode
+        // when we don't know the size of the file.
+        // The value just have to be very big so the file is not cut.
+        // We cannot compute the real length of the file because we don't know
+        // it before we start streaming this request.
+        // It seems that graftwerk works fine using this hack, but it might
+        // change in the future.
+        knownLength = 10000000000;
+      }
+
       // Graftwerk Request
       const formData = {
         pipeline: {
@@ -183,15 +212,7 @@ module.exports = (app, settings) => {
           options: {
             filename: streamInfos.filename,
             contentType: streamInfos.mime,
-
-            // /!\ BEWARE OF THE WILD CONSTANT /!\
-            // This is a hack to send the file and the pipeline in a streaming mode
-            // The value just have to be very big so the file is not cut.
-            // We cannot compute the real length of the file because we don't know
-            // it before we start streaming this request.
-            // It seems that Graftwerk works fine using this hack, but it might
-            // change in the future.
-            knownLength: 10000000000
+            knownLength: knownLength
           }
         },
         command: req.query.command || ('my-' + type)
@@ -225,26 +246,13 @@ module.exports = (app, settings) => {
 
       // Querying Graftwerk
       const resultStream = request.post({
-        url: endpoint + '/evaluate/pipe',
+        url: endpoint + '/evaluate/' + type,
         headers,
         formData
       });
 
       resultStream.on('error', (err) => {
-
-        // If an error occurs and we havn't received headers,
-        // it means we should show the error message
-        if (!res.headersSent) {
-          res.status(500).json({
-            error: err
-          });
-        }
-
-        // Otherwise we can just log it
-        logging.error('Unable to transform the file using the original transformation', {
-          error: err
-        });
-
+        showAndLogError(res, 500, 'Unable to transform the file using the original transformation', err);
         stream.abort();
       }).on('response', (response) => {
 
@@ -255,22 +263,20 @@ module.exports = (app, settings) => {
           var outputError = concat({
             encoding: 'string',
           }, function(graftwerkOutput) {
-            log.error('Unable to transform the file', graftwerkOutput);
 
             // Display the error, using the callback or the default system
             if (errorCallback) {
+              logging.error('Unable to transform the file with Graftwerk', graftwerkOutput);
               errorCallback(graftwerkOutput);
             } else {
-              res.status(500).json({error: graftwerkOutput});
+              showAndLogError(res, 500, 'Unable to transform the file with Graftwerk', graftwerkOutput);
             }
           });
 
           resultStream.pipe(outputError);
 
-          log.captureMessage('The transformed data is invalid', {
-            extra: {
-              response: response ? response.statusCode : 'response empty'
-            }
+          logging.error('The transformed data is invalid', {
+            response: response ? response.statusCode : 'response empty'
           });
           return;
         }
@@ -284,6 +290,27 @@ module.exports = (app, settings) => {
           resultStream.pipe(res);
         }
       });
+    });
+  };
+
+  const transformDistribution = (req, res, distribution, transformation, type, callbackSuccess, callbackError) => {
+    // Fetch the clojure code from DataGraft
+    request.get({
+      url: settings.datagraftUri + '/myassets/transformations/' +
+        encodeURIComponent(transformation) + '/configuration/code',
+      headers: {
+        Authorization: getAuthorization(req)
+      }
+    }, (error, response, clojure) => {
+      if (error) {
+        showAndLogError(res, 500, 'Unable to load the transformation code', error);
+        return;
+      }
+
+      executeTransformation(req, res, clojure, type,
+        (type === 'graft' ? 'application/n-triples' : 'application/csv'),
+        callbackSuccess,
+        callbackError);
     });
   };
 
@@ -317,18 +344,14 @@ module.exports = (app, settings) => {
 
     // If the clojure code is missing, the request is aborted
     if (!clojure) {
-      res.status(400).json({
-        error: 'The clojure transformation code is missing'
-      });
+      showAndLogError(res, 400, 'The clojure transformation code is missing');
       return;
     }
 
     // If the client tries to send a number, an array or whatever
     // it's probably better to abort the request now
     if (typeof req.body.clojure !== 'string') {
-      res.status(400).json({
-        error: 'The clojure transformation code is not a string'
-      });
+      showAndLogError(res, 400, 'The clojure transformation code is not a string');
       return;
     }
 
@@ -340,23 +363,8 @@ module.exports = (app, settings) => {
   // from DataGraft. To have a GET request with few parameters.
   app.get('/transform/:distribution/:transformation', (req, res) => {
 
-    // Fetch the clojure code from DataGraft
-    request.get({
-      url: settings.datagraftUri + '/myassets/transformations/' +
-        encodeURIComponent(req.params.transformation) + '/configuration/code',
-      headers: {
-        Authorization: getAuthorization(req)
-      }
-    }, (error, response, clojure) => {
-      if (error) {
-        logging.error('Unable to load the transformation code', error);
-        res.status(500).json({error: 'Unable to load the transformation code'});
-        return;
-      }
-
-      executeTransformation(req, res, clojure, req.query.type,
-      (req.query.type === 'graft' ? 'application/n-triples' : 'application/csv'),
-      (stream, response, filename, type) => {
+    transformDistribution(req, res, req.params.distribution, req.params.transformation,
+      req.query.type, (stream, response, filename, type) => {
 
         // Replace the headers to download a nice file
         if (!req.query.useCache) {
@@ -376,20 +384,147 @@ module.exports = (app, settings) => {
         stream.pipe(res);
       },
 
-      // Show the error in a slightly improved way
-      (message) => {
-        res.status(500);
+    // Show the error in a slightly improved way
+    (message) => {
+      res.status(500);
 
-        if (!req.query.raw) {
-          res.send(downloadErrorText.replace('{{OUTPUT}}', escape(message)));
-        } else {
-          res.json({
-            error: message
-          });
-        }
-      });
-
+      if (!req.query.raw) {
+        res.send(downloadErrorText.replace('{{OUTPUT}}', escape(message)));
+      } else {
+        res.json({
+          error: message
+        });
+      }
     });
+
+  });
+
+  // Transform a distribution using a transformation
+  // Saves the output in a repository
+  app.post('/fillRDFrepo', jsonParser, (req, res) => {
+    var transformationUri = req.body.transformation;
+    var distributionUri = req.body.distribution;
+    var queriableDataStoreUri = req.body.queriabledatastore;
+    var isOntotext = !!req.body.ontotext;
+
+    if (!transformationUri) {
+      showAndLogError(res, 400, 'The transformation URI is missing');
+      return;
+    }
+
+    if (!distributionUri) {
+      showAndLogError(res, 400, 'The distribution URI is missing');
+      return;
+    }
+
+    if (!queriableDataStoreUri) {
+      showAndLogError(res, 400, 'The queriable data store URI is missing');
+      return;
+    }
+
+    if (isOntotext) {
+      // We need to fetch an ontotext key
+      request.get({
+        url: settings.datagraftUri + '/api_keys/first',
+        headers: {
+          Authorization: getAuthorization(req)
+        }
+      }, (err, response, body) => {
+
+        // Errors management
+        if (err) {
+          showAndLogError(res, 500, 'Unable to fetch an Ontotext Key from DataGraft', err);
+          return;
+        }
+
+        // Creation of the Basic authorization header
+        var authorization = 'Basic ' + (new Buffer(body).toString('base64'));
+
+        // Query a select count to check if the database is ready
+        // If this request fails, it's not necessary to execute the transformation
+        request.get({
+          url: queriableDataStoreUri,
+          qs: {
+            query: 'SELECT (count(*) as ?count) WHERE {?s ?p ?o . }'
+          },
+          headers: {
+            Authorization: authorization,
+            Accept: 'application/sparql-results+json',
+          }
+        }, (err, response, body) => {
+          // If we have an error, the repository is likely not ready yet
+          if (err) {
+            showAndLogError(res, 503, 'The repository is not accessible', err);
+            return;
+          }
+
+          // Execute the transformation
+          transformDistribution(req, res, distributionUri, transformationUri, 'graft',
+            (resultStream, response, filename, type) => {
+
+              // If we are here and the status is not correct, we display the output
+              if (!response || response.statusCode !== 200) {
+                stream.pipe(res);
+                return;
+              }
+
+              // Create a temporary file to save the output from Graftwerk
+              // The problem is that Graftwerk doesn't send a content-length
+              // for RDF (only CSV), so we have to save it first before fowarding
+              // it to the next component
+              var tmpPath = temp.path('grafterizer-save', 's-');
+              /*jshint bitwise: false*/
+              var tmpWriteStream = fs.createWriteStream(tmpPath, {
+                flags: constants.O_CREAT | constants.O_TRUNC | constants.O_RDWR | constants.O_EXCL,
+                mode: '0600'
+              });
+              /*jshint bitwise: true*/
+
+              // Save in the temporary file
+              resultStream.pipe(tmpWriteStream);
+
+              // When the file has finished to be received from Graftwerk
+              tmpWriteStream.on('finish', () => {
+
+                // Start to save it in the database
+                var saveStream = request.post({
+                  url: queriableDataStoreUri + '/statements',
+                  headers: {
+                    Authorization: authorization,
+                    'Content-Type': 'text/x-nquads;charset=UTF-8'
+                  },
+                });
+
+                // When the received the response, the database has received the file
+                saveStream.on('response', (response) => {
+
+                  // The file is deleted once it has been received
+                  fs.unlink(tmpPath);
+
+                  // Redirect the output from the database to the client
+                  // With ontotext, it's only a HTTP 204 OK, but it might contain
+                  // more information in the future.
+                  saveStream.pipe(res);
+
+                }).on('error', (err) => {
+                  fs.unlink(tmpPath);
+                  showAndLogError(res, 500, 'Error while transmitting the transformed data to the database', err);
+                });
+                
+                fs.createReadStream(tmpPath).pipe(saveStream);
+
+              }).on('error', (error) => {
+                fs.unlink(tmpPath);
+                showAndLogError(res, 500, 'Error while receiving the transformed data', err);
+             });
+
+            });
+        });
+      });
+    } else {
+      showAndLogError(res, 501, 'Only Ontotext Queriable Data Stores are supported');
+      return;
+    }
 
   });
 };

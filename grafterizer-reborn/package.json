@@ -13,6 +13,7 @@
     "agentkeepalive": "^2.0.3",
     "client-sessions": "^0.7.0",
     "compression": "^1.6.1",
+    "concat-stream": "^1.5.1",
     "cors": "^2.7.1",
     "express": "^4.13.4",
     "http-proxy": "^1.13.2",
