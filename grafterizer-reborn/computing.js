@@ -281,6 +281,11 @@ module.exports = (app, settings) => {
           return;
         }
 
+        // Remove the access control headers, so they don't override the
+        // working ones
+        delete response.headers['access-control-allow-credentials'];
+        delete response.headers['access-control-allow-origin'];
+
         // Run the callback
         if (successCallback) {
           var filename = streamInfos.name.replace(/[^a-zA-Z0-9_\-]/g, '') + '-processed';
