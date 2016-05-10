@@ -37,6 +37,8 @@ module.exports = (app, settings) => {
     site: settings.oauth2Site
   });
 
+  const hasDifferentPublicPath = settings.oauth2Site !== settings.publicOAuth2Site;
+
   // reanimeToken takes a token JSON object as input
   // and returns a SimpleOAuth2 Token object
   const reanimeToken = (token) => {
@@ -62,10 +64,17 @@ module.exports = (app, settings) => {
   const redirect_uri = settings.publicCallbackServer + CALLBACK_URI;
 
   // Setting up the authorization uri
-  const authorizationUri = oauth2Instance.authCode.authorizeURL({
+  var authorizationUri = oauth2Instance.authCode.authorizeURL({
     scope: settings.oauth2Scope,
     redirect_uri
   });
+
+  // Fix the authorization URI if the oAuthSite URL needs to be
+  // changed to be accessible by the client.
+  if (hasDifferentPublicPath) {
+    authorizationUri = settings.publicOAuth2Site +
+      authorizationUri.slice(settings.oauth2Site.length);
+  }
 
   const showError = (req, res, description, error) => {
     logging.error(description, {

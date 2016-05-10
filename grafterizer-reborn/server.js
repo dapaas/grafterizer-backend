@@ -102,6 +102,10 @@ if (!graftwerkCacheUri) console.error('GRAFTWERK_CACHE_URI must be defined') & p
 // OAuth2 authentication server site, default to datagraftUri
 const oauth2Site = process.env.OAUTH2_SITE || datagraftUri;
 
+// The public path of the portal, that should be publicly accessible by the Grafterizer web client
+// You should define it in case OAUTH2_SITE is an internal URI.
+const publicOAuth2Site = process.env.PUBLIC_OAUTH2_SITE || oauth2Site;
+
 // Setting up the express HTTP server
 const app = express();
 
@@ -138,7 +142,8 @@ require('./authentication')(app, {
   sessionDuration,
   sessionActiveDuration,
   cookieStoreSecret,
-  publicCallbackServer
+  publicCallbackServer,
+  publicOAuth2Site
 });
 
 // Simple status page
