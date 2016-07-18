@@ -1,4 +1,4 @@
-package main.java.prediction;
+package main.java.suggestion;
 
 public class Selection {
 	EnumType type;

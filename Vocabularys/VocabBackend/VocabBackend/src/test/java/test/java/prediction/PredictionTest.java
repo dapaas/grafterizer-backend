@@ -1,14 +1,17 @@
 package test.java.prediction;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import main.java.prediction.EnumPredict;
-import main.java.prediction.EnumType;
-import main.java.prediction.Prediction;
-import main.java.prediction.Selection;
-import main.java.prediction.Prediction.PredictionProbability;
+import main.java.suggestion.EnumPredict;
+import main.java.suggestion.EnumType;
+import main.java.suggestion.Prediction;
+import main.java.suggestion.Selection;
+import main.java.suggestion.Prediction.PredictionProbability;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,6 +31,7 @@ public class PredictionTest {
 
 	@Test
 	public void testParseOperation() {
+		/*
 		Selection s = new Selection();
 		s.setSelectedColumn(1);
 		s.setSelectedRow(1);
@@ -38,6 +42,7 @@ public class PredictionTest {
 		s.setSelectedRows(lrow);
 		
 		p.incProbability(EnumPredict.SingleColumnDeleteBasic);
+		*/
 	}
 	
 	private String[] getSelectedColumnData(int columnid, String[][] data){
@@ -50,9 +55,19 @@ public class PredictionTest {
 		
 		return l.toArray(new String[l.size()]);
 	}
-
-	@Test
-	public void testGenerateOperations() {
+	
+	private String[] getSelectedColumnData(int columnid, List<String[]> data){
+		List<String> l = new ArrayList<String>();
+		for(int i = 0; i < data.size(); i++){
+			if(columnid < data.get(i).length){
+				l.add(data.get(i)[columnid]);
+			}
+		}
+		
+		return l.toArray(new String[l.size()]);
+	}
+	
+	private void case1(){
 		String [][] data = {
 				{"2004", "4029.3", "crime at Oslo"},
 				{"2005", "3900", "crime at Bergen"},
@@ -221,5 +236,169 @@ public class PredictionTest {
 			}
 		}
 	}
+	
+	private void training(){
+		//case 1
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		
+		//case 2
+		p.incProbability(EnumPredict.SingleRowDeleteCurrent);
+		p.incProbability(EnumPredict.SingleRowDeleteEmpty);
+		p.incProbability(EnumPredict.SingleRowDeleteCurrent);
+		p.incProbability(EnumPredict.MultiColumnMergeBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		
+		//case 3
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		
+		//case 4
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		p.incProbability(EnumPredict.SingleRowDeleteCurrent);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		
+		/*
+		//case 5
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		p.incProbability(EnumPredict.SingleRowDeleteCurrent);
+		p.incProbability(EnumPredict.SingleColumnSplitCommenWord);
+		
+		//case 6
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		
+		//case 7
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		*/
+		//case 8
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		
+		//case 9
+		p.incProbability(EnumPredict.SingleRowDeleteCurrent);
+		p.incProbability(EnumPredict.SingleColumnRename);
+		p.incProbability(EnumPredict.SingleColumnRename);
+		p.incProbability(EnumPredict.MultiColumnMergeBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		
+		//case 10
+		p.incProbability(EnumPredict.SingleRowMakeDataset);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);
+		p.incProbability(EnumPredict.SingleColumnCopyBasic);		
+	}
+
+	@Test
+	public void testGenerateOperations() {
+		//training();
+		
+		
+		List<String[]> data = importCsv("/home/yexl/test_data_original/test5 - ByggForAlle.csv");
+		
+		
+		String [] columnHead = null;
+		
+		if(data.size() > 0){
+			columnHead = data.get(0);
+		}
+		
+		//Test select column
+		Selection s = new Selection();
+		s.setSelectedColumn(2);
+		s.setType(EnumType.colSingle);
+				
+		Iterator<PredictionProbability> it = p.generateOperations(null, getSelectedColumnData(2, data), s, columnHead).iterator();
+		while(it.hasNext()){
+			PredictionProbability p = it.next();
+			System.out.println(p.getStrOp());
+			
+			Integer [] columns = p.getPara().columns;
+			if(columns != null){
+				for(int i = 0; i < columns.length; i++){
+					System.out.println(columns[i]);
+				}
+			}
+			
+			Integer [] rows = p.getPara().rows;
+			if(rows != null){
+				for(int i = 0; i < rows.length; i++){
+					System.out.println(rows[i]);
+				}
+			}
+		}		
+		
+		System.out.println("-------------------------------------------------------------------");
+		//Test select row
+	    s = new Selection();
+		s.setSelectedRow(3);
+		s.setType(EnumType.rowSingle);
+				
+		it = p.generateOperations(data.get(1), null, s, columnHead).iterator();
+		while(it.hasNext()){
+			PredictionProbability p = it.next();
+			System.out.println(p.getStrOp());
+					
+			Integer [] columns = p.getPara().columns;
+			if(columns != null){
+				for(int i = 0; i < columns.length; i++){
+					System.out.println(columns[i]);
+				}
+			}
+					
+			Integer [] rows = p.getPara().rows;
+			if(rows != null){
+				for(int i = 0; i < rows.length; i++){
+					System.out.println(rows[i]);
+				}
+			}
+		}		
+	}
+	
+	public static List<String []> importCsv(String filename){
+		List<String []> ret = new ArrayList<String []>();
+		File file = new File(filename);
+
+        BufferedReader br=null;
+        FileReader f = null;
+        try { 
+        	f = new FileReader(file);
+            br = new BufferedReader(f);
+            String line = ""; 
+            while ((line = br.readLine()) != null) { 
+            	String[] arr = line.split(",");
+                
+            	ret.add(arr);
+            }
+        }catch (Exception e) {
+             e.printStackTrace();
+        }
+ 
+        return ret;
+    }
 
 }

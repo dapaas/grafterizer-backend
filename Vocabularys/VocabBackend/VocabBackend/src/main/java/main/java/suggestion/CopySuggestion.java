@@ -3,9 +3,6 @@ package main.java.suggestion;
 import java.util.ArrayList;
 import java.util.List;
 
-import main.java.prediction.EnumPredict;
-import main.java.prediction.EnumType;
-import main.java.prediction.Selection;
 
 public class CopySuggestion extends Suggestion {
 	

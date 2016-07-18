@@ -2,10 +2,6 @@ package main.java.suggestion;
 
 import java.util.List;
 
-import main.java.prediction.EnumOp;
-import main.java.prediction.EnumPredict;
-import main.java.prediction.ProbabilityFile;
-import main.java.prediction.Selection;
 import main.java.suggestion.Suggestion.SuggestionItem;
 
 public class SuggestionMgr {
@@ -47,6 +43,9 @@ public class SuggestionMgr {
 		case Split:
 			suggestion = new SplitSuggestion();
 			break;
+		case Other:
+			suggestion = new OtherSuggestion();
+			break;
 		default:
 			throw new IllegalArgumentException("Incorrect suggestion type");	
 		}
@@ -74,6 +73,9 @@ public class SuggestionMgr {
 			break;
 		case "Split":
 			suggestion = new SplitSuggestion();
+			break;
+		case "Other":
+			suggestion = new OtherSuggestion();
 			break;
 		default:
 			throw new IllegalArgumentException("Incorrect suggestion type");	

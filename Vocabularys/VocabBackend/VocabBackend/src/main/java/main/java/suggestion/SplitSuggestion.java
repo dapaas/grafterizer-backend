@@ -6,10 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import main.java.prediction.EnumPredict;
-import main.java.prediction.EnumType;
-import main.java.prediction.Selection;
-
 public class SplitSuggestion extends Suggestion{
 	
 	@Override

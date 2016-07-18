@@ -3,10 +3,6 @@ package main.java.suggestion;
 import java.util.ArrayList;
 import java.util.List;
 
-import main.java.prediction.EnumPredict;
-import main.java.prediction.EnumType;
-import main.java.prediction.Selection;
-
 public class RenameSuggestion extends Suggestion{
 	@Override
 	List<SuggestionItem> generateSuggestion(String[] selectedRowData, String[] selectedColumnData, Selection selection, String [] columnhead){

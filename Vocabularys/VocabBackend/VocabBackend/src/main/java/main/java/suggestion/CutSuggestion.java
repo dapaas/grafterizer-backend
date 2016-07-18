@@ -2,7 +2,6 @@ package main.java.suggestion;
 
 import java.util.ArrayList;
 import java.util.List;
-import main.java.prediction.Selection;
 
 public class CutSuggestion extends Suggestion{
 	

@@ -1,4 +1,4 @@
-package main.java.prediction;
+package main.java.suggestion;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -52,8 +52,8 @@ public class ProbabilityFile {
             }
 			else{
 				String value = rs.getString("value");
-            	Integer iValue = Integer.parseInt(value);
-            	iValue += 1;
+            	Double iValue = Double.parseDouble(value);
+            	iValue += 1.0;
             	value = iValue.toString();
             	stmt.execute("update probability set value = '" + value + "' where key_id = '" + ep + "'");
 			}
@@ -68,27 +68,27 @@ public class ProbabilityFile {
 	
 	
 	
-	public static Integer getProbability(EnumPredict ep){
+	public static Double getProbability(EnumPredict ep){
 		Connection conn = getConnection();
 		
-		Integer iValue = null;
+		Double dValue = new Double(0);
 		
 		try{
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("select * from probability where key_id = '" + ep +"'");
 			if (!rs.next()) {
 				stmt.execute("insert into probability values('" + ep + "', '" + 1 + "')");
-				iValue = 1;
+				dValue = 1.0;
 			}else{
 				String value = rs.getString("value");
-            	iValue = Integer.parseInt(value);
+				dValue = Double.parseDouble(value);
 			}
 			
 			conn.close();
 		}catch(Exception e){
 		}
 		
-		return iValue;
+		return dValue;
 	}
 	
 	/*

@@ -1,4 +1,4 @@
-package main.java.prediction;
+package main.java.suggestion;
 
 public enum EnumPredict {
 	SingleColumnCopyBasic,
@@ -14,6 +14,7 @@ public enum EnumPredict {
 	MultiColumnSplitBasic,
 	
 	SingleRowDeleteEmpty,   //delete empty rows
+	SingleRowDeleteCurrent,
 	SingleRowDeleteBasic,  //delete rows where column1 = "data in column1"
 	MultiRowDeleteBasic,   //delete rows 1,2
 	SingleColumnDeleteBasic,  //delete column1
@@ -38,5 +39,7 @@ public enum EnumPredict {
 	SingleColumnMergeBasic,
 	MultiColumnMergeBasic,
 	
-	SingleColumnRename
+	SingleColumnRename,
+	
+	SingleRowMakeDataset
 }

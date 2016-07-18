@@ -18,11 +18,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import main.java.dao.VocabularyDAO;
-import main.java.prediction.EnumPredict;
-import main.java.prediction.EnumType;
-import main.java.prediction.Prediction;
-import main.java.prediction.Selection;
-import main.java.prediction.Prediction.PredictionProbability;
+import main.java.suggestion.EnumPredict;
+import main.java.suggestion.EnumType;
+import main.java.suggestion.Prediction;
+import main.java.suggestion.Selection;
+import main.java.suggestion.Prediction.PredictionProbability;
 import main.java.suggestion.Suggestion.Parameters;
 
 import org.apache.log4j.Logger;

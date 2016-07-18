@@ -3,10 +3,6 @@ package main.java.suggestion;
 import java.util.ArrayList;
 import java.util.List;
 
-import main.java.prediction.EnumPredict;
-import main.java.prediction.EnumType;
-import main.java.prediction.Selection;
-
 public class DeleteSuggestion extends Suggestion{
 	
 	@Override
@@ -25,10 +21,15 @@ public class DeleteSuggestion extends Suggestion{
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteEmpty, p);
 			}
 			
+			opStr = "Delete current row.";
+			Parameters p = getParameter("delete", true, null, 
+					null, null, null);
+			AddItem(oplist, opStr, EnumPredict.SingleRowDeleteCurrent, p);
+			
 			//delete rows where <column head> = <cell data>
 			while(index < columnhead.length){
 				opStr = "Delete rows where " + "\"" + columnhead[index] + "\"" + " = " + "\"" + selectedRowData[index] + "\"";
-				Parameters p = getParameter("delete", false, columnhead[index], 
+				p = getParameter("delete", false, columnhead[index], 
 						selectedRowData[index], null, null);
 				AddItem(oplist, opStr, EnumPredict.SingleRowDeleteBasic, p);
 				index++;

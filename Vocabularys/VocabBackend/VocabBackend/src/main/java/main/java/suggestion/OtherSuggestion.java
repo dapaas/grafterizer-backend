@@ -1,10 +1,10 @@
 package main.java.suggestion;
 
+import java.util.ArrayList;
 import java.util.List;
 //import java.util.regex.Matcher;
 //import java.util.regex.Pattern;
 
-import main.java.prediction.Selection;
 
 public class OtherSuggestion extends Suggestion {
 
@@ -13,7 +13,23 @@ public class OtherSuggestion extends Suggestion {
 			String[] selectedColumnData, Selection selection,
 			String[] columnhead) {
 		
-		return null;
+		List<SuggestionItem> oplist = new ArrayList<SuggestionItem>();
+		
+		String opStr = "";
+		if(selection.getType() == EnumType.rowSingle){
+			if(selection.getSelectedRow() == 0){
+				opStr = "set current row as header";
+				
+				//Extract from <column head>
+				//eg: extract from telephone
+				Parameters p = getParameter("make-dataset", false, columnhead[selection.getSelectedColumn()], 
+						null, null, null);
+				
+				AddItem(oplist, opStr, EnumPredict.SingleRowMakeDataset, p);
+			}
+		}
+		
+		return oplist;
 	}
 	
 	/*

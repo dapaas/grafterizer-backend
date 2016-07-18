@@ -1,4 +1,4 @@
-package main.java.prediction;
+package main.java.suggestion;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,19 +50,19 @@ public class Prediction {
 	Map<EnumType, EnumOp []> opMap = new HashMap<EnumType, EnumOp []>();
 	
 	public Prediction(){
-		EnumOp [] singleRowList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill};
+		EnumOp [] singleRowList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill, EnumOp.Other};
 		opMap.put(EnumType.rowSingle, singleRowList);
 		
-		EnumOp [] multiRowList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill, EnumOp.Fold};
+		EnumOp [] multiRowList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill, EnumOp.Fold, EnumOp.Other};
 		opMap.put(EnumType.rowMulti, multiRowList);
 		
-		EnumOp [] singleColList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill};
+		EnumOp [] singleColList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill, EnumOp.Other};
 		opMap.put(EnumType.colSingle, singleColList);
 		
-		EnumOp [] multiColList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill, EnumOp.Fold};
+		EnumOp [] multiColList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill, EnumOp.Fold, EnumOp.Other};
 		opMap.put(EnumType.colMulti, multiColList);
 		
-		EnumOp [] textList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill};
+		EnumOp [] textList = {EnumOp.Delete, EnumOp.Copy, EnumOp.Cut, EnumOp.Split, EnumOp.Fill, EnumOp.Other};
 		opMap.put(EnumType.Text, textList);
 	}
 	
@@ -109,12 +109,12 @@ public class Prediction {
 		Double probability = 0.0;
 		
 		PredictionProbability p = new PredictionProbability();
+		
+		probability = ProbabilityFile.getProbability(e).doubleValue();
 		p.setProbability(probability);
 		p.setStrOp(opstr);
 		p.setEnumpredict(e);
 		p.setPara(para);
-		
-		probability = ProbabilityFile.getProbability(e).doubleValue();
 		
 		Iterator<PredictionProbability> it = suggestionList.iterator();
 		
